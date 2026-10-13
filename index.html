@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
 <style>
 :root{
+  --ff:'Gowun Dodum'; --fs:1;
   --bg1:#fff5f0; --bg2:#f3efff; --bg3:#eefaff;
   --ink:#3b3550; --sub:#8a83a0; --line:#e8e2f2;
   --grape:#8b6fd6; --grape-d:#6f55b8; --pink:#ff8fb1; --pink-d:#ec6f96;
@@ -19,7 +20,8 @@
 body{margin:0; font-family:'Jua',system-ui,'Apple SD Gothic Neo',sans-serif; color:var(--ink);
   background:linear-gradient(150deg,var(--bg1),var(--bg2) 55%,var(--bg3)); background-attachment:fixed; min-height:100vh}
 button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none}
-input,textarea{font-family:'Gowun Dodum','Jua',sans-serif; font-size:16px; color:var(--ink)}
+input,textarea{font-family:var(--ff),'Gowun Dodum',sans-serif; font-size:calc(16px * var(--fs)); color:var(--ink)}
+.chip{font-family:var(--ff),'Gowun Dodum',sans-serif}
 .btn{border-radius:14px; padding:.5em .95em; font-size:16px; background:#fff; border:2px solid var(--line);
   box-shadow:var(--shadow); white-space:nowrap}
 .btn:active{transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,.08)}
@@ -87,6 +89,14 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 .missing span{font-size:14px; padding:2px 9px; border-radius:999px; background:#ffeef3; border:1.5px solid #ffc2d3; color:#c24b72}
 .ok{color:var(--green); font-size:15px}
 
+.fontbg{position:fixed; inset:0; background:rgba(40,30,70,.35); z-index:70; display:grid; place-items:center; padding:16px}
+.fontsheet{background:#fff; border-radius:22px; width:min(760px,100%); max-height:88vh; overflow:auto; padding:20px}
+.fontsheet h2{margin:0 0 4px; font-weight:normal; font-size:22px}
+.fgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; margin-top:12px}
+.fbtn{text-align:left; border:3px solid var(--line); border-radius:16px; padding:10px 14px; background:#fff}
+.fbtn.on{border-color:var(--grape); background:#f6f1ff; box-shadow:0 3px 0 var(--grape-d)}
+.fbtn .nm{font-family:'Jua'; font-size:14px; color:var(--sub)}
+.fbtn .sm{display:block; margin-top:4px; line-height:1.3; color:var(--ink)}
 .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#3b3550; color:#fff; padding:10px 18px;
   border-radius:999px; font-size:16px; z-index:60; opacity:0; transition:opacity .25s; pointer-events:none}
 .toast.on{opacity:1}
@@ -107,15 +117,15 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 @media print{
   body{background:#fff}
   header,.wrap,.toast{display:none!important}
-  #print{display:block; font-family:'Gowun Dodum',sans-serif; color:#222}
-  #print h1{font-family:'Jua'; font-weight:normal; text-align:center; font-size:26px; margin:0 0 4px}
-  #print .meta{text-align:center; color:#555; margin-bottom:14px; font-size:14px}
-  #print table{width:100%; border-collapse:collapse; font-size:13.5px}
+  #print{display:block; font-family:var(--ff),'Gowun Dodum',sans-serif; color:#222}
+  #print h1{font-family:var(--ff),'Jua'; font-weight:normal; text-align:center; font-size:calc(28px * var(--fs)); margin:0 0 4px}
+  #print .meta{text-align:center; color:#555; margin-bottom:14px; font-size:calc(14px * var(--fs))}
+  #print table{width:100%; border-collapse:collapse; font-size:calc(13.5px * var(--fs))}
   #print th,#print td{border:1px solid #bbb; padding:6px 7px; vertical-align:top}
-  #print th{background:#f2eefb; font-family:'Jua'; font-weight:normal; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  #print th{background:#f2eefb; font-family:var(--ff),'Jua'; font-weight:normal; -webkit-print-color-adjust:exact; print-color-adjust:exact}
   #print td.n,#print td.tc{text-align:center; white-space:nowrap}
   #print tr{break-inside:avoid}
-  #print tfoot td{font-family:'Jua'; background:#faf7ff; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  #print tfoot td{font-family:var(--ff),'Jua'; background:#faf7ff; -webkit-print-color-adjust:exact; print-color-adjust:exact}
   @page{size:A4; margin:14mm 12mm}
 }
 </style>
@@ -123,6 +133,7 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 <body>
 <header>
   <h1><span>🎭</span> 꿈끼 발표회 프로그램 정리표</h1>
+  <button class="btn small" id="btnFont">✏️ 글씨체</button>
   <button class="btn small" id="btnSave">💾 파일로 저장</button>
   <button class="btn small" id="btnLoad">📂 불러오기</button>
   <input type="file" id="fileIn" accept=".json,application/json" hidden>
@@ -347,6 +358,52 @@ $('#fileIn').onchange=async e=>{
   e.target.value='';
 };
 
+/* ── 글씨체 고르기: 화면 입력 칸 + 인쇄에 같이 적용. sc = 글자가 작게 보이는 글꼴 보정 ── */
+const FONTS=[
+  {id:'Gowun Dodum', nm:'고운돋움 (기본·깔끔)', q:'Gowun+Dodum', sc:1},
+  {id:'Jua', nm:'주아 (동글동글)', q:'Jua', sc:1},
+  {id:'Do Hyeon', nm:'도현 (또박또박)', q:'Do+Hyeon', sc:1.04},
+  {id:'Gaegu', nm:'개구 (손글씨)', q:'Gaegu:wght@400;700', sc:1.18},
+  {id:'Gamja Flower', nm:'감자꽃 (귀여운 손글씨)', q:'Gamja+Flower', sc:1.15},
+  {id:'Nanum Pen Script', nm:'나눔손글씨 펜', q:'Nanum+Pen+Script', sc:1.4},
+  {id:'Hi Melody', nm:'하이멜로디 (아기자기)', q:'Hi+Melody', sc:1.25},
+  {id:'Poor Story', nm:'푸어스토리 (동화책)', q:'Poor+Story', sc:1.1},
+  {id:'Dongle', nm:'동글 (말랑말랑)', q:'Dongle:wght@400;700', sc:1.55},
+  {id:'Single Day', nm:'싱글데이 (발랄)', q:'Single+Day', sc:1.05},
+  {id:'Yeon Sung', nm:'연성 (붓글씨 느낌)', q:'Yeon+Sung', sc:1.1},
+  {id:'Gowun Batang', nm:'고운바탕 (단정한 명조)', q:'Gowun+Batang', sc:1},
+];
+const loaded=new Set(['Gowun Dodum','Jua']);
+function loadFont(list){
+  const need=list.filter(f=>!loaded.has(f.id)); if(!need.length) return;
+  need.forEach(f=>loaded.add(f.id));
+  const l=document.createElement('link'); l.rel='stylesheet';
+  l.href='https://fonts.googleapis.com/css2?'+need.map(f=>'family='+f.q).join('&')+'&display=swap';
+  document.head.appendChild(l);
+}
+function applyFont(){
+  const f=FONTS.find(x=>x.id===S.font)||FONTS[0];
+  loadFont([f]);
+  document.documentElement.style.setProperty('--ff',`'${f.id}'`);
+  document.documentElement.style.setProperty('--fs',f.sc);
+}
+$('#btnFont').onclick=()=>{
+  loadFont(FONTS);
+  const bg=document.createElement('div'); bg.className='fontbg';
+  const sample=(S.acts.find(a=>a.name)||{}).name||'리코더 합주';
+  bg.innerHTML=`<div class="fontsheet"><h2>✏️ 글씨체 고르기</h2>
+    <p class="hint">누르면 바로 바뀌어요. 화면의 글씨와 <b>인쇄</b>에 같이 적용돼요.</p>
+    <div class="fgrid">${FONTS.map(f=>`<button class="fbtn ${S.font===f.id||(!S.font&&f===FONTS[0])?'on':''}" data-font="${f.id}">
+      <span class="nm">${f.nm}</span><span class="sm" style="font-family:'${f.id}';font-size:${Math.round(22*f.sc)}px">🎭 ${esc(S.title||'꿈끼 발표회')}<br>${esc(sample)} · 김하늘, 이서준</span></button>`).join('')}</div>
+    <div style="text-align:right;margin-top:14px"><button class="btn primary" data-close>다 골랐어요</button></div></div>`;
+  document.body.appendChild(bg);
+  bg.addEventListener('click',e=>{
+    const b=e.target.closest('[data-font]');
+    if(b){ S.font=b.dataset.font; save(); applyFont(); bg.querySelectorAll('.fbtn').forEach(x=>x.classList.toggle('on',x===b)); return; }
+    if(e.target===bg || e.target.closest('[data-close]')) bg.remove();
+  });
+};
+
 document.body.insertAdjacentHTML('beforeend',`<datalist id="kindList">${ICONS.map(x=>`<option value="${x.k}">`).join('')}</datalist>`);
 /* 종목 고르기 판 */
 function openPal(i,btn){
@@ -360,6 +417,7 @@ function openPal(i,btn){
 }
 function closePal(){ document.querySelectorAll('.pal').forEach(p=>p.remove()); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePal(); });
+applyFont();
 render();
 </script>
 </body>
