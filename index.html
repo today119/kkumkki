@@ -66,6 +66,20 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 .pal button{display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 2px; border-radius:12px; border:2px solid transparent; font-size:13px; color:var(--sub)}
 .pal button .ic{font-size:30px}
 .pal button:hover{background:#f6f1ff; border-color:#e2d8fb; color:var(--ink)}
+.whocell{border:2px dashed #d9cff3; border-radius:12px; padding:6px 8px; min-height:42px; cursor:pointer; background:#fcfbff}
+.whocell:hover{border-color:var(--grape); background:#f8f4ff}
+.whocell .chips{margin-top:0}
+.whocell .addwho{display:inline-block; font-size:14px; color:var(--grape-d); margin-top:3px}
+.pal.spick{display:block; width:min(460px,calc(100vw - 16px)); padding:14px}
+.spick h3{margin:0 0 4px; font-weight:normal; font-size:18px}
+.spick .names{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; max-height:52vh; overflow:auto}
+.spick .names button{flex-direction:row; font-family:var(--ff),'Gowun Dodum',sans-serif; font-size:calc(16px * var(--fs)); color:var(--ink);
+  padding:6px 11px; border-radius:999px; border:2px solid var(--line); background:#fff}
+.spick .names button.on{background:var(--grape); border-color:var(--grape-d); color:#fff}
+.spick .names button sup{font-family:'Jua'; font-size:11px; margin-left:3px; opacity:.75}
+.spick .foot{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+.spick .foot input{flex:1; min-width:120px}
+.spick .foot button{flex-direction:row; font-size:14px}
 .chips{display:flex; flex-wrap:wrap; gap:4px; margin-top:5px}
 .chip{font-size:13px; padding:2px 8px; border-radius:999px; background:#f3efff; border:1.5px solid #ddd3f7}
 .chip.dup{background:#fff1e4; border-color:#ffc893; color:#b25d14}
@@ -152,7 +166,7 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
           <div class="tm"><input class="t" data-k="gapM" inputmode="numeric" placeholder="0"><span>분</span><input class="t" data-k="gapS" inputmode="numeric" placeholder="0"><span>초</span></div></div>
       </div>
       <table class="tbl">
-        <thead><tr><th>번호</th><th>종목</th><th>제목</th><th>참가 학생 <small>(쉼표로 구분)</small></th><th>소요 시간</th><th>비고 (준비물 등)</th><th></th></tr></thead>
+        <thead><tr><th>번호</th><th>종목</th><th>제목</th><th>참가 학생 <small>(눌러서 고르기)</small></th><th>소요 시간</th><th>비고 (준비물 등)</th><th></th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
       <div style="margin-top:12px"><button class="btn primary" id="btnAdd">＋ 공연 추가</button></div>
@@ -162,15 +176,15 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 
   <div class="side">
     <div class="card">
+      <h2>📋 우리 반 명단</h2>
+      <p class="hint">여기에 이름을 <b>한 번 붙여넣으면</b> 공연마다 <b>눌러서</b> 넣을 수 있어요. 아직 공연에 없는 친구도 알려 줘요.</p>
+      <textarea id="roster" placeholder="김하늘&#10;이서준&#10;…"></textarea>
+      <div id="missing"></div>
+    </div>
+    <div class="card" style="margin-top:14px">
       <h2>🙋 친구별 출연</h2>
       <p class="hint">여러 번 나오는 친구는 주황색. 바로 다음 공연에 또 나오면 ⚠️ 표시가 떠요.</p>
       <div id="who"></div>
-    </div>
-    <div class="card" style="margin-top:14px">
-      <h2>📋 우리 반 명단 (선택)</h2>
-      <p class="hint">명단을 붙여넣으면 <b>아직 공연에 없는 친구</b>를 찾아 줘요.</p>
-      <textarea id="roster" placeholder="김하늘&#10;이서준&#10;…"></textarea>
-      <div id="missing"></div>
     </div>
   </div>
 </div>
@@ -246,8 +260,8 @@ function drawRows(){
       <td style="min-width:130px"><div class="kindcell"><button class="icbtn" data-pal="${i}" title="종목 고르기">${icHTML(a.kind)||'<span style="font-size:15px;color:#b9b2cc">고르기</span>'}</button>
         <input class="t" data-a="kind" value="${esc(a.kind)}" placeholder="태권도" list="kindList"></div></td>
       <td style="min-width:110px"><input class="t" data-a="name" value="${esc(a.name)}" placeholder="예) 품새 시범"></td>
-      <td style="min-width:170px;width:28%"><input class="t" data-a="who" value="${esc(a.who)}" placeholder="김하늘, 이서준, 박지우">
-        <div class="chips" data-chips="${i}">${chipsHTML(a,cnt)}</div>
+      <td style="min-width:170px;width:28%"><div class="whocell" data-spick="${i}" role="button" title="눌러서 학생 고르기">
+        <div class="chips" data-chips="${i}">${chipsHTML(a,cnt)}</div><span class="addwho">👆 학생 고르기</span></div>
         <div class="wmsg" data-w="${i}">${b2b.length?`⚠️ 바로 앞 공연에도 나와요: ${b2b.map(esc).join(', ')}`:''}</div></td>
       <td><div class="tm"><input class="t" data-a="m" value="${esc(a.m)}" inputmode="numeric" placeholder="0"><span>분</span>
         <input class="t" data-a="s" value="${esc(a.s)}" inputmode="numeric" placeholder="0"><span>초</span></div></td>
@@ -313,10 +327,21 @@ document.addEventListener('input',e=>{
   if(t.id==='roster'){ S.roster=t.value; save(); drawMissing(); }
 });
 document.addEventListener('click',e=>{
+  const wc=e.target.closest('[data-spick]');
+  if(wc){ openSpick(+wc.dataset.spick); return; }
   const b=e.target.closest('button');
+  if(!b && e.target.closest('.pal')) return;
   if(!b || !b.closest('.pal')) closePal();
   if(!b) return; const d=b.dataset;
   if(d.pal!==undefined){ openPal(+d.pal,b); return; }
+  if(d.tog!==undefined){ togWho(+b.closest('.pal').dataset.i, d.tog, b); return; }
+  if(d.all!==undefined){ const i=+b.closest('.pal').dataset.i; const list=rosterList();
+    const on=list.every(n=>people(S.acts[i]).includes(n));
+    setWho(i, on? people(S.acts[i]).filter(n=>!list.includes(n)) : [...new Set([...people(S.acts[i]),...list])]);
+    openSpick(i); return; }
+  if(d.addname!==undefined){ const pal=b.closest('.pal'); const i=+pal.dataset.i; const inp=pal.querySelector('input');
+    const nm=inp.value.trim(); if(!nm) return; setWho(i,[...new Set([...people(S.acts[i]),nm])]); openSpick(i); return; }
+  if(d.done!==undefined){ closePal(); return; }
   if(d.pick!==undefined){ const i=+b.closest('.pal').dataset.i; S.acts[i].kind=d.pick; save(); closePal(); render(); return; }
   if(d.up){ const i=+d.up; [S.acts[i-1],S.acts[i]]=[S.acts[i],S.acts[i-1]]; save(); render(); return; }
   if(d.dn){ const i=+d.dn; [S.acts[i+1],S.acts[i]]=[S.acts[i],S.acts[i+1]]; save(); render(); return; }
@@ -414,6 +439,43 @@ function openPal(i,btn){
   const r=btn.getBoundingClientRect();
   p.style.left=Math.max(8,Math.min(r.left+scrollX, scrollX+innerWidth-p.offsetWidth-8))+'px';
   p.style.top=(r.bottom+scrollY+6)+'px';
+}
+/* 참가 학생 고르기: 명단에서 눌러서 넣고 빼기 (한 친구가 여러 공연에 들어가도 됨) */
+function rosterList(){ return [...new Set(S.roster.split(/[\n,\t]+/).map(t=>t.replace(/^\(?\d+\)?[.)\]]?\s*/,'').trim()).filter(Boolean))]; }
+function setWho(i,list){
+  const order=rosterList();
+  const rank=n=>{ const k=order.indexOf(n); return k<0?9999:k; };
+  S.acts[i].who=list.slice().sort((a,b)=>rank(a)-rank(b)).join(', ');
+  save(); refresh();
+}
+function togWho(i,n,btn){
+  const cur=people(S.acts[i]);
+  setWho(i, cur.includes(n)? cur.filter(x=>x!==n) : [...cur,n]);
+  openSpick(i);
+}
+function openSpick(i){
+  const anchor=document.querySelector(`[data-spick="${i}"]`);
+  const keepScroll=document.querySelector('.spick .names')?.scrollTop||0;
+  closePal();
+  const a=S.acts[i], sel=new Set(people(a)), cnt=counts();
+  const list=rosterList();
+  const extra=[...sel].filter(n=>!list.includes(n));      /* 명단에 없는데 넣은 이름(손님 등) */
+  const p=document.createElement('div'); p.className='pal spick'; p.dataset.i=i;
+  p.innerHTML=`<h3>${i+1}번 ${icHTML(a.kind)} ${esc(a.name||a.kind||'공연')} — 참가 학생 <b style="color:var(--grape-d)">${sel.size}명</b></h3>
+    ${list.length? `<p class="hint" style="margin:0">이름을 누르면 넣고, 다시 누르면 빠져요. 작은 숫자는 <b>다른 공연</b>에 나오는 횟수예요.</p>`
+      : `<p class="hint" style="margin:0;color:var(--warn)">오른쪽 <b>📋 우리 반 명단</b>에 이름을 먼저 붙여넣어 주세요. 그러면 여기서 눌러서 고를 수 있어요.</p>`}
+    <div class="names">${[...list,...extra].map(n=>{ const other=(cnt[n]||0)-(sel.has(n)?1:0);
+      return `<button class="${sel.has(n)?'on':''}" data-tog="${esc(n)}">${esc(n)}${other?`<sup>${other}</sup>`:''}</button>`; }).join('')}</div>
+    <div class="foot">${list.length?`<button class="btn small" data-all>${list.every(n=>sel.has(n))?'모두 빼기':'모두 넣기'}</button>`:''}
+      <input class="t" placeholder="명단에 없는 이름 (예: 선생님)"><button class="btn small" data-addname>＋</button>
+      <button class="btn small primary" data-done>다 골랐어요</button></div>`;
+  document.body.appendChild(p);
+  const r=anchor.getBoundingClientRect();
+  p.style.left=Math.max(8,Math.min(r.left+scrollX, scrollX+innerWidth-p.offsetWidth-8))+'px';
+  const below=r.bottom+6+p.offsetHeight < innerHeight;
+  p.style.top=(below? r.bottom+scrollY+6 : Math.max(scrollY+8, r.top+scrollY-p.offsetHeight-6))+'px';
+  p.querySelector('.names').scrollTop=keepScroll;
+  p.querySelector('input').addEventListener('keydown',e=>{ if(e.key==='Enter') p.querySelector('[data-addname]').click(); });
 }
 function closePal(){ document.querySelectorAll('.pal').forEach(p=>p.remove()); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePal(); });
