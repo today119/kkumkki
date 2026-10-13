@@ -44,7 +44,7 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 
 /* 정리표 */
 .tbl{width:100%; border-collapse:separate; border-spacing:0}
-.tbl th{font-weight:normal; font-size:15px; color:var(--sub); text-align:left; padding:6px 6px; border-bottom:2px solid var(--line); white-space:nowrap}
+.tbl th{font-weight:normal; font-size:calc(15px * var(--fs)); color:var(--sub); text-align:left; padding:6px 6px; border-bottom:2px solid var(--line); white-space:nowrap}
 .tbl td{padding:6px; border-bottom:1px dashed var(--line); vertical-align:top}
 .tbl tr.warn td{background:#fff8f0}
 .no{display:inline-grid; place-items:center; width:34px; height:34px; border-radius:50%; background:var(--grape); color:#fff; font-size:17px}
@@ -81,7 +81,7 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 .spick .foot input{flex:1; min-width:120px}
 .spick .foot button{flex-direction:row; font-size:14px}
 .chips{display:flex; flex-wrap:wrap; gap:4px; margin-top:5px}
-.chip{font-size:13px; padding:2px 8px; border-radius:999px; background:#f3efff; border:1.5px solid #ddd3f7}
+.chip{font-size:calc(13px * var(--fs)); padding:2px 8px; border-radius:999px; background:#f3efff; border:1.5px solid #ddd3f7}
 .chip.dup{background:#fff1e4; border-color:#ffc893; color:#b25d14}
 .wmsg{font-size:13px; color:var(--warn); margin-top:4px}
 .kinds{display:flex; flex-wrap:wrap; gap:4px; margin-top:4px}
@@ -144,7 +144,7 @@ html.b1 #print, html.b2 #print{color:#111}
   #print h1{font-family:var(--ff),'Jua'; font-weight:normal; text-align:center; font-size:calc(28px * var(--fs)); margin:0 0 4px}
   #print .meta{text-align:center; color:#555; margin-bottom:14px; font-size:calc(14px * var(--fs))}
   #print table{width:100%; border-collapse:collapse; font-size:calc(13.5px * var(--fs))}
-  #print th,#print td{border:1px solid #bbb; padding:6px 7px; vertical-align:top}
+  #print th,#print td{border:1px solid #bbb; padding:.55em .6em; vertical-align:top}
   #print th{background:#f2eefb; font-family:var(--ff),'Jua'; font-weight:normal; -webkit-print-color-adjust:exact; print-color-adjust:exact}
   #print td.n,#print td.tc{text-align:center; white-space:nowrap}
   #print tr{break-inside:avoid}
@@ -156,7 +156,7 @@ html.b1 #print, html.b2 #print{color:#111}
 <body>
 <header>
   <h1><span>🎭</span> 꿈끼 발표회 프로그램 정리표</h1>
-  <button class="btn small" id="btnFont">✏️ 글씨체</button>
+  <button class="btn small" id="btnFont">✏️ 글씨체·크기</button>
   <button class="btn small" id="btnSave">💾 파일로 저장</button>
   <button class="btn small" id="btnLoad">📂 불러오기</button>
   <input type="file" id="fileIn" accept=".json,application/json" hidden>
@@ -427,7 +427,8 @@ function applyFont(){
   const f=FONTS.find(x=>x.id===S.font)||FONTS[0];
   loadFont([f]);
   document.documentElement.style.setProperty('--ff',`'${f.id}'`);
-  document.documentElement.style.setProperty('--fs',f.sc);
+  const SZ=[0.9,1,1.18,1.36];  /* 글씨 크기: 작게·보통·크게(기본)·아주 크게 */
+  document.documentElement.style.setProperty('--fs',f.sc*SZ[S.size??2]);
   const w=S.weight??1;      /* 0 보통 · 1 진하게(기본) · 2 아주 진하게 */
   const de=document.documentElement;
   de.classList.toggle('hasbold', !!f.bold && w>0);
@@ -439,16 +440,19 @@ $('#btnFont').onclick=()=>{
   loadFont(FONTS);
   const bg=document.createElement('div'); bg.className='fontbg';
   const sample=(S.acts.find(a=>a.name)||{}).name||'리코더 합주';
-  bg.innerHTML=`<div class="fontsheet"><h2>✏️ 글씨체 고르기</h2>
+  bg.innerHTML=`<div class="fontsheet"><h2>✏️ 글씨체·크기 고르기</h2>
     <p class="hint">누르면 바로 바뀌어요. 화면의 글씨와 <b>인쇄</b>에 같이 적용돼요.</p>
     <div class="fgrid">${FONTS.map(f=>`<button class="fbtn ${S.font===f.id||(!S.font&&f===FONTS[0])?'on':''}" data-font="${f.id}">
       <span class="nm">${f.nm}</span><span class="sm" style="font-family:'${f.id}';font-size:${Math.round(22*f.sc)}px">🎭 ${esc(S.title||'꿈끼 발표회')}<br>${esc(sample)} · 김하늘, 이서준</span></button>`).join('')}</div>
     <div class="wrow"><b style="font-weight:normal">글씨 굵기</b>${['보통','진하게','아주 진하게'].map((t,k)=>`<button data-w="${k}" class="${(S.weight??1)===k?'on':''}">${t}</button>`).join('')}</div>
+    <div class="wrow"><b style="font-weight:normal">글씨 크기</b>${['작게','보통','크게','아주 크게'].map((t,k)=>`<button data-sz="${k}" class="${(S.size??2)===k?'on':''}">${t}</button>`).join('')}</div>
     <div style="text-align:right;margin-top:14px"><button class="btn primary" data-close>다 골랐어요</button></div></div>`;
   document.body.appendChild(bg); paintSamples(bg);
   bg.addEventListener('click',e=>{
     const b=e.target.closest('[data-font]');
     if(b){ S.font=b.dataset.font; save(); applyFont(); bg.querySelectorAll('.fbtn').forEach(x=>x.classList.toggle('on',x===b)); return; }
+    const zb=e.target.closest('[data-sz]');
+    if(zb){ S.size=+zb.dataset.sz; save(); applyFont(); bg.querySelectorAll('[data-sz]').forEach(x=>x.classList.toggle('on',x===zb)); return; }
     const wb=e.target.closest('[data-w]');
     if(wb){ S.weight=+wb.dataset.w; save(); applyFont(); bg.querySelectorAll('[data-w]').forEach(x=>x.classList.toggle('on',x===wb)); paintSamples(bg); return; }
     if(e.target===bg || e.target.closest('[data-close]')) bg.remove();
