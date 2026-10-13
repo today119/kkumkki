@@ -47,7 +47,15 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 .tbl th{font-weight:normal; font-size:calc(15px * var(--fs)); color:var(--sub); text-align:left; padding:6px 6px; border-bottom:2px solid var(--line); white-space:nowrap}
 .tbl td{padding:6px; border-bottom:1px dashed var(--line); vertical-align:top}
 .tbl tr.warn td{background:#fff8f0}
-.no{display:inline-grid; place-items:center; width:34px; height:34px; border-radius:50%; background:var(--grape); color:#fff; font-size:17px}
+.no{display:inline-grid; place-items:center; width:38px; height:38px; border-radius:50%; background:var(--grape); color:#fff; font-size:18px;
+  cursor:grab; touch-action:none; user-select:none; box-shadow:0 3px 0 var(--grape-d); position:relative}
+.no::after{content:'⠿'; position:absolute; left:-15px; top:50%; transform:translateY(-50%); color:#c4b8e6; font-size:15px}
+.no:active{cursor:grabbing}
+.noin{width:46px; height:38px; border:3px solid var(--grape); border-radius:12px; text-align:center; font-family:'Jua'; font-size:18px; outline:none}
+.tbl tr.dragging{opacity:.45}
+.tbl tr.dropBefore td{box-shadow:inset 0 4px 0 var(--pink)}
+.tbl tr.dropAfter td{box-shadow:inset 0 -4px 0 var(--pink)}
+.c-no{padding-left:16px!important}
 .st{display:block; font-size:12px; color:var(--sub); text-align:center; margin-top:3px; white-space:nowrap}
 .tbl input.t{padding:7px 8px}
 .tm{display:flex; align-items:center; gap:3px; white-space:nowrap}
@@ -215,7 +223,8 @@ const SVG_ROPE=`<svg viewBox="0 0 64 64"><path d="M14 40 C10 4, 54 4, 50 40" fil
 <circle cx="14" cy="42" r="2" fill="#fff"/><circle cx="50" cy="42" r="2" fill="#fff"/></svg>`;
 const ICONS=[
   {k:'태권도', re:/태권|품새|격파/, ic:'🥋'},
-  {k:'댄스', re:/댄스|춤|무용|안무|방송/, ic:'💃'},
+  {k:'댄스', re:/댄스|춤|힙합|브레이크|방송|안무/, ic:'🕺'},
+  {k:'무용', re:/무용|발레|한국무용|부채춤/, ic:'💃'},
   {k:'노래', re:/노래|가요|동요|보컬|독창/, ic:'🎤'},
   {k:'합창', re:/합창|중창|떼창/, ic:'🎶'},
   {k:'쌍절곤', re:/쌍절곤|봉술|무술/, ic:SVG_NUN},
@@ -265,7 +274,7 @@ function drawRows(){
   tb.innerHTML=S.acts.map((a,i)=>{
     const b2b=backToBack(i);
     return `<tr class="${b2b.length?'warn':''}" data-i="${i}">
-      <td class="c-no"><span class="no">${i+1}</span><span class="st" data-st="${i}">${S.start?clock(S.start,st[i]):''}</span></td>
+      <td class="c-no"><span class="no" data-no="${i}" title="끌어서 옮기기 · 눌러서 번호 바꾸기">${i+1}</span><span class="st" data-st="${i}">${S.start?clock(S.start,st[i]):''}</span></td>
       <td style="min-width:130px"><div class="kindcell"><button class="icbtn" data-pal="${i}" title="종목 고르기">${icHTML(a.kind)||'<span style="font-size:15px;color:#b9b2cc">고르기</span>'}</button>
         <input class="t" data-a="kind" value="${esc(a.kind)}" placeholder="태권도" list="kindList"></div></td>
       <td style="min-width:110px"><input class="t" data-a="name" value="${esc(a.name)}" placeholder="예) 품새 시범"></td>
@@ -507,6 +516,52 @@ function openSpick(i){
   p.querySelector('.names').scrollTop=keepScroll;
   p.querySelector('input').addEventListener('keydown',e=>{ if(e.key==='Enter') p.querySelector('[data-addname]').click(); });
 }
+/* ── 순서 바꾸기: 번호를 끌어서 놓기 / 번호를 눌러 숫자로 쓰기 ── */
+function moveTo(from,to){
+  to=Math.max(0,Math.min(S.acts.length-1,to)); if(from===to){ render(); return; }
+  const [a]=S.acts.splice(from,1); S.acts.splice(to,0,a); save(); render();
+  const tr=document.querySelector(`tr[data-i="${to}"]`);
+  if(tr){ tr.style.transition='background .8s'; tr.style.background='#fff1f6'; setTimeout(()=>tr.style.background='',900); }
+  toast(`${to+1}번으로 옮겼어요`);
+}
+let drag=null;
+document.addEventListener('pointerdown',e=>{
+  const no=e.target.closest('[data-no]'); if(!no) return;
+  e.preventDefault();
+  drag={from:+no.dataset.no, y:e.clientY, moved:false, to:+no.dataset.no, el:no};
+  no.setPointerCapture(e.pointerId);
+});
+document.addEventListener('pointermove',e=>{
+  if(!drag) return;
+  if(!drag.moved && Math.abs(e.clientY-drag.y)<6) return;
+  drag.moved=true;
+  const rows=[...document.querySelectorAll('#rows tr')];
+  rows[drag.from].classList.add('dragging');
+  let to=rows.length-1;
+  for(let k=0;k<rows.length;k++){ const r=rows[k].getBoundingClientRect(); if(e.clientY < r.top+r.height/2){ to=k; break; } }
+  /* to = 끼워 넣을 자리(그 줄 앞). 맨 아래면 마지막 뒤 */
+  const last=rows[rows.length-1].getBoundingClientRect();
+  const after=e.clientY >= last.top+last.height/2;
+  rows.forEach(r=>r.classList.remove('dropBefore','dropAfter'));
+  if(after) rows[rows.length-1].classList.add('dropAfter'); else rows[to].classList.add('dropBefore');
+  drag.to= after? rows.length : to;
+  /* 화면 끝에 가까우면 자동 스크롤 */
+  if(e.clientY<60) scrollBy(0,-12); else if(e.clientY>innerHeight-60) scrollBy(0,12);
+});
+document.addEventListener('pointerup',e=>{
+  if(!drag) return; const d=drag; drag=null;
+  if(d.moved){ let to=d.to; if(to>d.from) to--; moveTo(d.from,to); return; }
+  editNo(d.el, d.from);
+});
+function editNo(el,i){
+  const inp=document.createElement('input'); inp.className='noin'; inp.type='number'; inp.min=1; inp.max=S.acts.length; inp.value=i+1;
+  el.replaceWith(inp); inp.focus(); inp.select();
+  let done=false;
+  const fin=ok=>{ if(done) return; done=true; const v=parseInt(inp.value); if(ok && v>=1) moveTo(i, v-1); else render(); };
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') fin(true); if(e.key==='Escape') fin(false); });
+  inp.addEventListener('blur',()=>fin(true));
+}
+
 function closePal(){ document.querySelectorAll('.pal').forEach(p=>p.remove()); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePal(); });
 applyFont();
