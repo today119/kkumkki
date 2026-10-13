@@ -103,6 +103,15 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 .missing span{font-size:14px; padding:2px 9px; border-radius:999px; background:#ffeef3; border:1.5px solid #ffc2d3; color:#c24b72}
 .ok{color:var(--green); font-size:15px}
 
+/* 진하게: 굵은 글꼴이 없는 한글 글꼴이 많아서 글자 테두리(stroke)로 굵기를 더한다 */
+html.b1 input, html.b1 .chip, html.b1 .spick .names button, html.b1 #print{-webkit-text-stroke:.022em currentColor}
+html.b2 input, html.b2 .chip, html.b2 .spick .names button, html.b2 #print{-webkit-text-stroke:.042em currentColor}
+html.b1 input, html.b2 input{color:#241e33}
+html.hasbold input, html.hasbold #print, html.hasbold .chip{font-weight:700}
+html.b1 #print, html.b2 #print{color:#111}
+.wrow{display:flex; gap:6px; align-items:center; margin-top:10px; flex-wrap:wrap}
+.wrow button{border:2px solid var(--line); border-radius:12px; padding:6px 14px; background:#fff; font-size:16px}
+.wrow button.on{background:var(--grape); color:#fff; border-color:var(--grape-d)}
 .fontbg{position:fixed; inset:0; background:rgba(40,30,70,.35); z-index:70; display:grid; place-items:center; padding:16px}
 .fontsheet{background:#fff; border-radius:22px; width:min(760px,100%); max-height:88vh; overflow:auto; padding:20px}
 .fontsheet h2{margin:0 0 4px; font-weight:normal; font-size:22px}
@@ -388,12 +397,12 @@ const FONTS=[
   {id:'Gowun Dodum', nm:'고운돋움 (기본·깔끔)', q:'Gowun+Dodum', sc:1},
   {id:'Jua', nm:'주아 (동글동글)', q:'Jua', sc:1},
   {id:'Do Hyeon', nm:'도현 (또박또박)', q:'Do+Hyeon', sc:1.04},
-  {id:'Gaegu', nm:'개구 (손글씨)', q:'Gaegu:wght@400;700', sc:1.18},
+  {id:'Gaegu', nm:'개구 (손글씨)', q:'Gaegu:wght@400;700', sc:1.18, bold:1},
   {id:'Gamja Flower', nm:'감자꽃 (귀여운 손글씨)', q:'Gamja+Flower', sc:1.15},
   {id:'Nanum Pen Script', nm:'나눔손글씨 펜', q:'Nanum+Pen+Script', sc:1.4},
   {id:'Hi Melody', nm:'하이멜로디 (아기자기)', q:'Hi+Melody', sc:1.25},
   {id:'Poor Story', nm:'푸어스토리 (동화책)', q:'Poor+Story', sc:1.1},
-  {id:'Dongle', nm:'동글 (말랑말랑)', q:'Dongle:wght@400;700', sc:1.55},
+  {id:'Dongle', nm:'동글 (말랑말랑)', q:'Dongle:wght@400;700', sc:1.55, bold:1},
   {id:'Single Day', nm:'싱글데이 (발랄)', q:'Single+Day', sc:1.05},
   {id:'Yeon Sung', nm:'연성 (붓글씨 느낌)', q:'Yeon+Sung', sc:1.1},
   {id:'Gowun Batang', nm:'고운바탕 (단정한 명조)', q:'Gowun+Batang', sc:1},
@@ -406,11 +415,25 @@ function loadFont(list){
   l.href='https://fonts.googleapis.com/css2?'+need.map(f=>'family='+f.q).join('&')+'&display=swap';
   document.head.appendChild(l);
 }
+/* 고르기 판 견본 글씨에도 굵기를 보여 준다 */
+function paintSamples(bg){
+  const w=S.weight??1;
+  bg.querySelectorAll('.fbtn').forEach(b=>{ const f=FONTS.find(x=>x.id===b.dataset.font); const sm=b.querySelector('.sm');
+    sm.style.fontWeight= f.bold&&w>0? 700 : 400;
+    const st= f.bold? (w===2?.022:0) : (w===1?.022:w===2?.042:0);
+    sm.style.webkitTextStroke= st? `${st}em currentColor` : ''; });
+}
 function applyFont(){
   const f=FONTS.find(x=>x.id===S.font)||FONTS[0];
   loadFont([f]);
   document.documentElement.style.setProperty('--ff',`'${f.id}'`);
   document.documentElement.style.setProperty('--fs',f.sc);
+  const w=S.weight??1;      /* 0 보통 · 1 진하게(기본) · 2 아주 진하게 */
+  const de=document.documentElement;
+  de.classList.toggle('hasbold', !!f.bold && w>0);
+  /* 굵은 글꼴이 있으면 굵게 + 아주 진하게일 때만 테두리를 조금 더 */
+  de.classList.toggle('b1', f.bold? w===2 : w===1);
+  de.classList.toggle('b2', !f.bold && w===2);
 }
 $('#btnFont').onclick=()=>{
   loadFont(FONTS);
@@ -420,11 +443,14 @@ $('#btnFont').onclick=()=>{
     <p class="hint">누르면 바로 바뀌어요. 화면의 글씨와 <b>인쇄</b>에 같이 적용돼요.</p>
     <div class="fgrid">${FONTS.map(f=>`<button class="fbtn ${S.font===f.id||(!S.font&&f===FONTS[0])?'on':''}" data-font="${f.id}">
       <span class="nm">${f.nm}</span><span class="sm" style="font-family:'${f.id}';font-size:${Math.round(22*f.sc)}px">🎭 ${esc(S.title||'꿈끼 발표회')}<br>${esc(sample)} · 김하늘, 이서준</span></button>`).join('')}</div>
+    <div class="wrow"><b style="font-weight:normal">글씨 굵기</b>${['보통','진하게','아주 진하게'].map((t,k)=>`<button data-w="${k}" class="${(S.weight??1)===k?'on':''}">${t}</button>`).join('')}</div>
     <div style="text-align:right;margin-top:14px"><button class="btn primary" data-close>다 골랐어요</button></div></div>`;
-  document.body.appendChild(bg);
+  document.body.appendChild(bg); paintSamples(bg);
   bg.addEventListener('click',e=>{
     const b=e.target.closest('[data-font]');
     if(b){ S.font=b.dataset.font; save(); applyFont(); bg.querySelectorAll('.fbtn').forEach(x=>x.classList.toggle('on',x===b)); return; }
+    const wb=e.target.closest('[data-w]');
+    if(wb){ S.weight=+wb.dataset.w; save(); applyFont(); bg.querySelectorAll('[data-w]').forEach(x=>x.classList.toggle('on',x===wb)); paintSamples(bg); return; }
     if(e.target===bg || e.target.closest('[data-close]')) bg.remove();
   });
 };
