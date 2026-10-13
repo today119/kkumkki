@@ -29,20 +29,33 @@ input,textarea{font-family:var(--ff),'Gowun Dodum',sans-serif; font-size:calc(16
 .btn.pink{background:var(--pink); color:#fff; border-color:var(--pink-d)}
 .btn.small{font-size:14px; padding:.3em .6em; border-radius:10px; box-shadow:0 2px 0 rgba(0,0,0,.07)}
 
-header{max-width:1400px; margin:0 auto; padding:16px 16px 6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+header{max-width:2400px; margin:0 auto; padding:16px 16px 6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
 header h1{margin:0; font-size:26px; font-weight:normal; flex:1; min-width:220px}
 header h1 span{font-size:30px}
-.wrap{max-width:1400px; margin:0 auto; padding:0 16px 60px; display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:16px; align-items:start}
+.wrap{max-width:2400px; margin:0 auto; padding:0 16px 60px; display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:16px; align-items:start}
+/* 넓은 화면이 아니면 명단·친구별 출연은 표 아래로 → 표가 화면 너비를 다 쓴다 */
+@media (max-width:1799px){
+  .wrap{grid-template-columns:minmax(0,1fr)}
+  .side{display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start}
+  .side>.card{margin-top:0!important}
+  #who{columns:2; column-gap:20px}
+  #who .row{break-inside:avoid}
+}
 .card{background:#fff; border:2px solid var(--line); border-radius:20px; padding:16px; box-shadow:var(--shadow)}
 .card h2{margin:0 0 10px; font-size:20px; font-weight:normal}
 .hint{color:var(--sub); font-size:14px; line-height:1.5; margin:4px 0 8px}
 
 .info{display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr; gap:10px; margin-bottom:14px}
 .info label{display:block; font-size:14px; color:var(--sub); margin-bottom:4px}
-input.t{width:100%; border:2px solid var(--line); border-radius:10px; padding:8px 10px; background:#fcfbff; outline:none}
-input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
+input.t,textarea.t{width:100%; border:2px solid var(--line); border-radius:10px; padding:8px 10px; background:#fcfbff; outline:none}
+input.t:focus,textarea.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 
-/* 정리표 */
+/* 정리표 — 칸 너비를 비율로 고정해서 종목·제목이 잘리지 않게 */
+textarea.t{display:block; resize:none; overflow:hidden; line-height:1.3}
+.tbl{table-layout:fixed}
+.tbl col.cn{width:calc(58px + 14px)} .tbl col.ck{width:17%} .tbl col.ct{width:22%} .tbl col.cm{width:15%}
+.tbl col.cs{width:calc(84px * var(--fs) + 52px)} .tbl col.co{width:72px}
+.tbl td>*{max-width:100%}
 .tbl{width:100%; border-collapse:separate; border-spacing:0}
 .tbl th{font-weight:normal; font-size:calc(15px * var(--fs)); color:var(--sub); text-align:left; padding:6px 6px; border-bottom:2px solid var(--line); white-space:nowrap}
 .tbl td{padding:6px; border-bottom:1px dashed var(--line); vertical-align:top}
@@ -59,14 +72,15 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 .st{display:block; font-size:12px; color:var(--sub); text-align:center; margin-top:3px; white-space:nowrap}
 .tbl input.t{padding:7px 8px}
 .tm{display:flex; align-items:center; gap:3px; white-space:nowrap}
-.tm input{width:42px; text-align:center; padding-left:4px!important; padding-right:4px!important}
+.tm input{width:calc(40px * var(--fs)); flex:none; text-align:center; padding-left:4px!important; padding-right:4px!important}
 .tm span{font-size:14px; color:var(--sub)}
-.ops{display:flex; gap:3px; flex-wrap:wrap; width:66px}
+.ops{display:grid; grid-template-columns:30px 30px; gap:3px; width:63px}
 .ops button{width:30px; height:30px; border-radius:9px; border:2px solid var(--line); background:#fff; font-size:13px}
 .ops button:disabled{opacity:.3}
 .ic{display:inline-grid; place-items:center; width:1.25em; height:1.25em; line-height:1; font-size:1em; vertical-align:-.2em}
 .ic svg{width:100%; height:100%}
-.kindcell{display:flex; align-items:center; gap:6px}
+.kindcell{display:flex; align-items:center; gap:6px; min-width:0}
+.kindcell input{min-width:0; flex:1}
 .icbtn{flex:0 0 auto; width:42px; height:42px; border-radius:14px; border:2px solid var(--line); background:#fffaf2; font-size:28px; display:grid; place-items:center}
 .icbtn:hover{border-color:var(--grape)}
 .pal{position:absolute; z-index:40; background:#fff; border:2px solid var(--line); border-radius:18px; padding:10px; box-shadow:0 10px 30px rgba(60,40,120,.18);
@@ -112,10 +126,10 @@ input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
 .ok{color:var(--green); font-size:15px}
 
 /* 진하게: 굵은 글꼴이 없는 한글 글꼴이 많아서 글자 테두리(stroke)로 굵기를 더한다 */
-html.b1 input, html.b1 .chip, html.b1 .spick .names button, html.b1 #print{-webkit-text-stroke:.022em currentColor}
-html.b2 input, html.b2 .chip, html.b2 .spick .names button, html.b2 #print{-webkit-text-stroke:.042em currentColor}
-html.b1 input, html.b2 input{color:#241e33}
-html.hasbold input, html.hasbold #print, html.hasbold .chip{font-weight:700}
+html.b1 input, html.b1 textarea.t, html.b1 .chip, html.b1 .spick .names button, html.b1 #print{-webkit-text-stroke:.022em currentColor}
+html.b2 input, html.b2 textarea.t, html.b2 .chip, html.b2 .spick .names button, html.b2 #print{-webkit-text-stroke:.042em currentColor}
+html.b1 input, html.b2 input, html.b1 textarea.t, html.b2 textarea.t{color:#241e33}
+html.hasbold input, html.hasbold textarea.t, html.hasbold #print, html.hasbold .chip{font-weight:700}
 html.b1 #print, html.b2 #print{color:#111}
 .wrow{display:flex; gap:6px; align-items:center; margin-top:10px; flex-wrap:wrap}
 .wrow button{border:2px solid var(--line); border-radius:12px; padding:6px 14px; background:#fff; font-size:16px}
@@ -216,6 +230,7 @@ html.hasbold #big td{font-weight:700}
           <div class="tm"><input class="t" data-k="gapM" inputmode="numeric" placeholder="0"><span>분</span><input class="t" data-k="gapS" inputmode="numeric" placeholder="0"><span>초</span></div></div>
       </div>
       <table class="tbl">
+        <colgroup><col class="cn"><col class="ck"><col class="ct"><col><col class="cs"><col class="cm"><col class="co"></colgroup>
         <thead><tr><th>번호</th><th>종목</th><th>제목</th><th>참가 학생 <small>(눌러서 고르기)</small></th><th>소요 시간</th><th>비고 (준비물 등)</th><th></th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
@@ -313,19 +328,22 @@ function drawRows(){
     const b2b=backToBack(i);
     return `<tr class="${b2b.length?'warn':''}" data-i="${i}">
       <td class="c-no"><span class="no" data-no="${i}" title="끌어서 옮기기 · 눌러서 번호 바꾸기">${i+1}</span><span class="st" data-st="${i}">${S.start?clock(S.start,st[i]):''}</span></td>
-      <td style="min-width:130px"><div class="kindcell"><button class="icbtn" data-pal="${i}" title="종목 고르기">${icHTML(a.kind)||'<span style="font-size:15px;color:#b9b2cc">고르기</span>'}</button>
+      <td><div class="kindcell"><button class="icbtn" data-pal="${i}" title="종목 고르기">${icHTML(a.kind)||'<span style="font-size:15px;color:#b9b2cc">고르기</span>'}</button>
         <input class="t" data-a="kind" value="${esc(a.kind)}" placeholder="태권도" list="kindList"></div></td>
-      <td style="min-width:110px"><input class="t" data-a="name" value="${esc(a.name)}" placeholder="예) 품새 시범"></td>
-      <td style="min-width:170px;width:28%"><div class="whocell" data-spick="${i}" role="button" title="눌러서 학생 고르기">
+      <td><textarea class="t" data-a="name" rows="1" placeholder="예) 품새 시범">${esc(a.name)}</textarea></td>
+      <td><div class="whocell" data-spick="${i}" role="button" title="눌러서 학생 고르기">
         <div class="chips" data-chips="${i}">${chipsHTML(a,cnt)}</div><span class="addwho">👆 학생 고르기</span></div>
         <div class="wmsg" data-w="${i}">${b2b.length?`⚠️ 바로 앞 공연에도 나와요: ${b2b.map(esc).join(', ')}`:''}</div></td>
       <td><div class="tm"><input class="t" data-a="m" value="${esc(a.m)}" inputmode="numeric" placeholder="0"><span>분</span>
         <input class="t" data-a="s" value="${esc(a.s)}" inputmode="numeric" placeholder="0"><span>초</span></div></td>
-      <td style="min-width:100px"><input class="t" data-a="memo" value="${esc(a.memo)}" placeholder="예) 음원 USB, 매트"></td>
+      <td><textarea class="t" data-a="memo" rows="1" placeholder="예) 음원 USB">${esc(a.memo)}</textarea></td>
       <td><div class="ops"><button data-up="${i}" ${i===0?'disabled':''} title="위로">▲</button><button data-dn="${i}" ${i===S.acts.length-1?'disabled':''} title="아래로">▼</button><button data-del="${i}" title="지우기">🗑</button></div></td>
     </tr>`;
   }).join('');
 }
+/* 제목·비고 칸: 글이 길면 줄을 늘려서 다 보이게 */
+function grow(el){ el.style.height='auto'; el.style.height=(el.scrollHeight+4)+'px'; }
+function growAll(){ document.querySelectorAll('textarea.t').forEach(grow); }
 function chipsHTML(a,cnt){ return people(a).map(n=>`<span class="chip ${cnt[n]>1?'dup':''}">${esc(n)}${cnt[n]>1?` ×${cnt[n]}`:''}</span>`).join(''); }
 function counts(){ const c={}; S.acts.forEach(a=>people(a).forEach(n=>c[n]=(c[n]||0)+1)); return c; }
 
@@ -372,14 +390,16 @@ function drawMissing(){
 function render(){
   document.querySelectorAll('[data-k]').forEach(el=>el.value=S[el.dataset.k]||'');
   $('#roster').value=S.roster;
-  drawRows(); drawTotal(); drawWho(); drawMissing();
+  drawRows(); drawTotal(); drawWho(); drawMissing(); growAll();
 }
+window.addEventListener('resize',()=>{ clearTimeout(growAll.t); growAll.t=setTimeout(growAll,100); });
+document.fonts&&document.fonts.ready.then(growAll);
 
 /* ── 이벤트 ── */
 document.addEventListener('input',e=>{
   const t=e.target;
   if(t.dataset.k){ S[t.dataset.k]=t.value; save(); if(t.dataset.k==='title'||t.dataset.k==='klass') return; refresh(); return; }
-  if(t.dataset.a){ const i=+t.closest('tr').dataset.i; S.acts[i][t.dataset.a]=t.value; save(); refresh(); return; }
+  if(t.dataset.a){ if(t.tagName==='TEXTAREA') grow(t); const i=+t.closest('tr').dataset.i; S.acts[i][t.dataset.a]=t.value; save(); refresh(); return; }
   if(t.id==='roster'){ S.roster=t.value; save(); drawMissing(); }
 });
 document.addEventListener('click',e=>{
@@ -482,6 +502,7 @@ function applyFont(){
   /* 굵은 글꼴이 있으면 굵게 + 아주 진하게일 때만 테두리를 조금 더 */
   de.classList.toggle('b1', f.bold? w===2 : w===1);
   de.classList.toggle('b2', !f.bold && w===2);
+  growAll(); setTimeout(growAll,700);
 }
 $('#btnFont').onclick=()=>{
   loadFont(FONTS);
