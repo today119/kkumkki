@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>꿈끼 발표회 정리표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#fff5f0; --bg2:#f3efff; --bg3:#eefaff;
+  --ink:#3b3550; --sub:#8a83a0; --line:#e8e2f2;
+  --grape:#8b6fd6; --grape-d:#6f55b8; --pink:#ff8fb1; --pink-d:#ec6f96;
+  --orange:#ffab5e; --green:#4fbf86; --warn:#e8813a;
+  --shadow:0 4px 0 rgba(0,0,0,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0; font-family:'Jua',system-ui,'Apple SD Gothic Neo',sans-serif; color:var(--ink);
+  background:linear-gradient(150deg,var(--bg1),var(--bg2) 55%,var(--bg3)); background-attachment:fixed; min-height:100vh}
+button{font-family:inherit;color:inherit;cursor:pointer;border:none;background:none}
+input,textarea{font-family:'Gowun Dodum','Jua',sans-serif; font-size:16px; color:var(--ink)}
+.btn{border-radius:14px; padding:.5em .95em; font-size:16px; background:#fff; border:2px solid var(--line);
+  box-shadow:var(--shadow); white-space:nowrap}
+.btn:active{transform:translateY(3px); box-shadow:0 1px 0 rgba(0,0,0,.08)}
+.btn.primary{background:var(--grape); color:#fff; border-color:var(--grape-d)}
+.btn.pink{background:var(--pink); color:#fff; border-color:var(--pink-d)}
+.btn.small{font-size:14px; padding:.3em .6em; border-radius:10px; box-shadow:0 2px 0 rgba(0,0,0,.07)}
+
+header{max-width:1400px; margin:0 auto; padding:16px 16px 6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+header h1{margin:0; font-size:26px; font-weight:normal; flex:1; min-width:220px}
+header h1 span{font-size:30px}
+.wrap{max-width:1400px; margin:0 auto; padding:0 16px 60px; display:grid; grid-template-columns:minmax(0,1fr) 260px; gap:16px; align-items:start}
+.card{background:#fff; border:2px solid var(--line); border-radius:20px; padding:16px; box-shadow:var(--shadow)}
+.card h2{margin:0 0 10px; font-size:20px; font-weight:normal}
+.hint{color:var(--sub); font-size:14px; line-height:1.5; margin:4px 0 8px}
+
+.info{display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr; gap:10px; margin-bottom:14px}
+.info label{display:block; font-size:14px; color:var(--sub); margin-bottom:4px}
+input.t{width:100%; border:2px solid var(--line); border-radius:10px; padding:8px 10px; background:#fcfbff; outline:none}
+input.t:focus,textarea:focus{border-color:var(--grape); background:#fff}
+
+/* 정리표 */
+.tbl{width:100%; border-collapse:separate; border-spacing:0}
+.tbl th{font-weight:normal; font-size:15px; color:var(--sub); text-align:left; padding:6px 6px; border-bottom:2px solid var(--line); white-space:nowrap}
+.tbl td{padding:6px; border-bottom:1px dashed var(--line); vertical-align:top}
+.tbl tr.warn td{background:#fff8f0}
+.no{display:inline-grid; place-items:center; width:34px; height:34px; border-radius:50%; background:var(--grape); color:#fff; font-size:17px}
+.st{display:block; font-size:12px; color:var(--sub); text-align:center; margin-top:3px; white-space:nowrap}
+.tbl input.t{padding:7px 8px}
+.tm{display:flex; align-items:center; gap:3px; white-space:nowrap}
+.tm input{width:42px; text-align:center; padding-left:4px!important; padding-right:4px!important}
+.tm span{font-size:14px; color:var(--sub)}
+.ops{display:flex; gap:3px; flex-wrap:wrap; width:66px}
+.ops button{width:30px; height:30px; border-radius:9px; border:2px solid var(--line); background:#fff; font-size:13px}
+.ops button:disabled{opacity:.3}
+.ic{display:inline-grid; place-items:center; width:1.25em; height:1.25em; line-height:1; font-size:1em; vertical-align:-.2em}
+.ic svg{width:100%; height:100%}
+.kindcell{display:flex; align-items:center; gap:6px}
+.icbtn{flex:0 0 auto; width:42px; height:42px; border-radius:14px; border:2px solid var(--line); background:#fffaf2; font-size:28px; display:grid; place-items:center}
+.icbtn:hover{border-color:var(--grape)}
+.pal{position:absolute; z-index:40; background:#fff; border:2px solid var(--line); border-radius:18px; padding:10px; box-shadow:0 10px 30px rgba(60,40,120,.18);
+  display:grid; grid-template-columns:repeat(4,1fr); gap:6px; width:340px}
+.pal button{display:flex; flex-direction:column; align-items:center; gap:2px; padding:8px 2px; border-radius:12px; border:2px solid transparent; font-size:13px; color:var(--sub)}
+.pal button .ic{font-size:30px}
+.pal button:hover{background:#f6f1ff; border-color:#e2d8fb; color:var(--ink)}
+.chips{display:flex; flex-wrap:wrap; gap:4px; margin-top:5px}
+.chip{font-size:13px; padding:2px 8px; border-radius:999px; background:#f3efff; border:1.5px solid #ddd3f7}
+.chip.dup{background:#fff1e4; border-color:#ffc893; color:#b25d14}
+.wmsg{font-size:13px; color:var(--warn); margin-top:4px}
+.kinds{display:flex; flex-wrap:wrap; gap:4px; margin-top:4px}
+.kinds button{font-size:12px; padding:1px 7px; border-radius:999px; border:1.5px solid var(--line); background:#fff; color:var(--sub)}
+
+.total{display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:14px; padding:14px 16px;
+  background:linear-gradient(90deg,#f6f1ff,#fff3f7); border-radius:16px; border:2px solid #e6dcfb}
+.total .big{font-size:30px; color:var(--grape-d)}
+.total .big small{font-size:18px}
+.total .sm{font-size:16px; color:var(--sub)}
+.total .sm b{color:var(--ink); font-weight:normal}
+
+/* 오른쪽: 친구별 */
+.side .row{display:flex; justify-content:space-between; align-items:center; padding:5px 2px; border-bottom:1px dashed var(--line); font-size:16px}
+.side .row .c{font-size:14px; color:var(--sub); text-align:right}
+.side .row.many .c{color:var(--warn)}
+.side textarea{width:100%; min-height:80px; border:2px solid var(--line); border-radius:10px; padding:8px; outline:none; resize:vertical}
+.missing{display:flex; flex-wrap:wrap; gap:4px; margin-top:6px}
+.missing span{font-size:14px; padding:2px 9px; border-radius:999px; background:#ffeef3; border:1.5px solid #ffc2d3; color:#c24b72}
+.ok{color:var(--green); font-size:15px}
+
+.toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%); background:#3b3550; color:#fff; padding:10px 18px;
+  border-radius:999px; font-size:16px; z-index:60; opacity:0; transition:opacity .25s; pointer-events:none}
+.toast.on{opacity:1}
+
+/* 인쇄용 */
+#print{display:none}
+@media (max-width:980px){
+  .wrap{grid-template-columns:1fr}
+  .info{grid-template-columns:1fr 1fr}
+  .info>div:first-child{grid-column:1/-1}
+}
+@media (max-width:720px){
+  .tbl thead{display:none}
+  .tbl tr{display:grid; grid-template-columns:auto 1fr; gap:4px 8px; padding:10px 0; border-bottom:2px solid var(--line)}
+  .tbl td{border:none; padding:2px}
+  .tbl td.c-no{grid-row:span 6}
+}
+@media print{
+  body{background:#fff}
+  header,.wrap,.toast{display:none!important}
+  #print{display:block; font-family:'Gowun Dodum',sans-serif; color:#222}
+  #print h1{font-family:'Jua'; font-weight:normal; text-align:center; font-size:26px; margin:0 0 4px}
+  #print .meta{text-align:center; color:#555; margin-bottom:14px; font-size:14px}
+  #print table{width:100%; border-collapse:collapse; font-size:13.5px}
+  #print th,#print td{border:1px solid #bbb; padding:6px 7px; vertical-align:top}
+  #print th{background:#f2eefb; font-family:'Jua'; font-weight:normal; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  #print td.n,#print td.tc{text-align:center; white-space:nowrap}
+  #print tr{break-inside:avoid}
+  #print tfoot td{font-family:'Jua'; background:#faf7ff; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  @page{size:A4; margin:14mm 12mm}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1><span>🎭</span> 꿈끼 발표회 프로그램 정리표</h1>
+  <button class="btn small" id="btnSave">💾 파일로 저장</button>
+  <button class="btn small" id="btnLoad">📂 불러오기</button>
+  <input type="file" id="fileIn" accept=".json,application/json" hidden>
+  <button class="btn pink" id="btnPrint">🖨️ 인쇄</button>
+</header>
+
+<div class="wrap">
+  <div>
+    <div class="card">
+      <div class="info">
+        <div><label>행사 이름</label><input class="t" data-k="title" placeholder="꿈끼 발표회"></div>
+        <div><label>반 / 학년</label><input class="t" data-k="klass" placeholder="4학년 2반"></div>
+        <div><label>날짜</label><input class="t" data-k="date" placeholder="11월 20일"></div>
+        <div><label>시작 시각 (선택)</label><input class="t" data-k="start" type="time"></div>
+        <div><label>공연 사이 준비 시간</label>
+          <div class="tm"><input class="t" data-k="gapM" inputmode="numeric" placeholder="0"><span>분</span><input class="t" data-k="gapS" inputmode="numeric" placeholder="0"><span>초</span></div></div>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>번호</th><th>종목</th><th>제목</th><th>참가 학생 <small>(쉼표로 구분)</small></th><th>소요 시간</th><th>비고 (준비물 등)</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div style="margin-top:12px"><button class="btn primary" id="btnAdd">＋ 공연 추가</button></div>
+      <div class="total" id="total"></div>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="card">
+      <h2>🙋 친구별 출연</h2>
+      <p class="hint">여러 번 나오는 친구는 주황색. 바로 다음 공연에 또 나오면 ⚠️ 표시가 떠요.</p>
+      <div id="who"></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <h2>📋 우리 반 명단 (선택)</h2>
+      <p class="hint">명단을 붙여넣으면 <b>아직 공연에 없는 친구</b>를 찾아 줘요.</p>
+      <textarea id="roster" placeholder="김하늘&#10;이서준&#10;…"></textarea>
+      <div id="missing"></div>
+    </div>
+  </div>
+</div>
+
+<div id="print"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='kkumkki_v1';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+/* 종목 아이콘 — 이모지가 없는 쌍절곤·줄넘기는 직접 그린 SVG */
+const SVG_NUN=`<svg viewBox="0 0 64 64"><path d="M22 14 Q32 4 42 14" fill="none" stroke="#9aa3b2" stroke-width="3" stroke-dasharray="3 2.5" stroke-linecap="round"/>
+<g transform="rotate(-18 18 36)"><rect x="12" y="14" width="12" height="44" rx="6" fill="#c8843f"/><rect x="12" y="14" width="12" height="44" rx="6" fill="none" stroke="#8a5320" stroke-width="2.5"/><rect x="12" y="24" width="12" height="4" fill="#8a5320"/><rect x="12" y="44" width="12" height="4" fill="#8a5320"/></g>
+<g transform="rotate(18 46 36)"><rect x="40" y="14" width="12" height="44" rx="6" fill="#e2a25a"/><rect x="40" y="14" width="12" height="44" rx="6" fill="none" stroke="#8a5320" stroke-width="2.5"/><rect x="40" y="24" width="12" height="4" fill="#8a5320"/><rect x="40" y="44" width="12" height="4" fill="#8a5320"/></g></svg>`;
+const SVG_ROPE=`<svg viewBox="0 0 64 64"><path d="M14 40 C10 4, 54 4, 50 40" fill="none" stroke="#ff7fa8" stroke-width="4.5" stroke-linecap="round"/>
+<rect x="8" y="38" width="12" height="20" rx="6" fill="#5aa7ef" stroke="#2f78c2" stroke-width="2.5"/><rect x="44" y="38" width="12" height="20" rx="6" fill="#5aa7ef" stroke="#2f78c2" stroke-width="2.5"/>
+<circle cx="14" cy="42" r="2" fill="#fff"/><circle cx="50" cy="42" r="2" fill="#fff"/></svg>`;
+const ICONS=[
+  {k:'태권도', re:/태권|품새|격파/, ic:'🥋'},
+  {k:'댄스', re:/댄스|춤|무용|안무|방송/, ic:'💃'},
+  {k:'노래', re:/노래|가요|동요|보컬|독창/, ic:'🎤'},
+  {k:'합창', re:/합창|중창|떼창/, ic:'🎶'},
+  {k:'쌍절곤', re:/쌍절곤|봉술|무술/, ic:SVG_NUN},
+  {k:'줄넘기', re:/줄넘기|음악줄/, ic:SVG_ROPE},
+  {k:'퀴즈', re:/퀴즈|문제|골든벨|수수께끼/, ic:'❓'},
+  {k:'수어', re:/수어|수화/, ic:'🤟'},
+  {k:'피아노', re:/피아노|건반|키보드/, ic:'🎹'},
+  {k:'리코더', re:/리코더|단소|오카리나|플루트|피리/, ic:'🎼'},
+  {k:'바이올린', re:/바이올린|첼로|우쿨|기타|현악/, ic:'🎻'},
+  {k:'악기 연주', re:/악기|연주|합주|난타|드럼|타악/, ic:'🥁'},
+  {k:'연극', re:/연극|뮤지컬|인형극|상황극/, ic:'🎭'},
+  {k:'마술', re:/마술|매직/, ic:'🎩'},
+  {k:'시 낭송', re:/낭송|낭독|동시|발표/, ic:'📜'},
+  {k:'개그', re:/개그|코미디|콩트|성대모사/, ic:'🤣'},
+  {k:'치어리딩', re:/치어|응원/, ic:'📣'},
+  {k:'저글링', re:/저글링|요요|팽이|훌라/, ic:'🤹'},
+  {k:'그림', re:/그림|미술|캘리|샌드/, ic:'🎨'},
+  {k:'기타', re:/./, ic:'⭐'},
+];
+const iconOf=k=>{ k=String(k||'').trim(); if(!k) return ''; const f=ICONS.find(x=>x.re.test(k)); return f?f.ic:'⭐'; };
+const icHTML=k=>{ const ic=iconOf(k); return ic? `<span class="ic">${ic}</span>` : ''; };
+
+function newAct(){ return {id:uid(), name:'', kind:'', who:'', m:'', s:'', memo:''}; }
+function blank(){ return {title:'꿈끼 발표회', klass:'', date:'', start:'', gapM:'', gapS:'', roster:'', acts:[newAct(),newAct(),newAct()]}; }
+let S=load();
+function load(){ try{ const r=localStorage.getItem(KEY); if(r) return Object.assign(blank(),JSON.parse(r)); }catch(e){} return blank(); }
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
+function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),1800); }
+
+/* 이름: 쉼표·줄바꿈·가운뎃점·띄어쓰기 여러 칸으로 구분. 같은 공연 안 중복은 한 번만 */
+const people=a=>[...new Set(String(a.who||'').split(/[,，、·\n\/]+|\s{2,}/).map(t=>t.trim()).filter(Boolean))];
+const secs=a=>(Math.max(0,parseInt(a.m)||0))*60+Math.max(0,parseInt(a.s)||0);
+const gap=()=>(Math.max(0,parseInt(S.gapM)||0))*60+Math.max(0,parseInt(S.gapS)||0);
+function fmt(t){ const m=Math.floor(t/60), s=t%60; return !m&&s? `${s}초` : s? `${m}분 ${s}초` : `${m}분`; }
+function clock(base,addSec){
+  if(!base) return '';
+  const [h,mi]=base.split(':').map(Number); const t=h*60+mi+Math.floor(addSec/60);
+  const H=Math.floor(t/60)%24, M=t%60; return `${H}:${String(M).padStart(2,'0')}`;
+}
+/* 각 공연의 시작 시각(초) — 앞 공연들 시간 + 준비 시간 */
+function starts(){ let t=0; return S.acts.map((a,i)=>{ const st=t; t+=secs(a)+(i<S.acts.length-1?gap():0); return st; }); }
+/* 바로 앞 공연에도 나온 친구 */
+function backToBack(i){ if(i===0) return []; const prev=new Set(people(S.acts[i-1])); return people(S.acts[i]).filter(n=>prev.has(n)); }
+
+function drawRows(){
+  const tb=$('#rows'); const st=starts(); const cnt=counts();
+  tb.innerHTML=S.acts.map((a,i)=>{
+    const b2b=backToBack(i);
+    return `<tr class="${b2b.length?'warn':''}" data-i="${i}">
+      <td class="c-no"><span class="no">${i+1}</span><span class="st" data-st="${i}">${S.start?clock(S.start,st[i]):''}</span></td>
+      <td style="min-width:130px"><div class="kindcell"><button class="icbtn" data-pal="${i}" title="종목 고르기">${icHTML(a.kind)||'<span style="font-size:15px;color:#b9b2cc">고르기</span>'}</button>
+        <input class="t" data-a="kind" value="${esc(a.kind)}" placeholder="태권도" list="kindList"></div></td>
+      <td style="min-width:110px"><input class="t" data-a="name" value="${esc(a.name)}" placeholder="예) 품새 시범"></td>
+      <td style="min-width:170px;width:28%"><input class="t" data-a="who" value="${esc(a.who)}" placeholder="김하늘, 이서준, 박지우">
+        <div class="chips" data-chips="${i}">${chipsHTML(a,cnt)}</div>
+        <div class="wmsg" data-w="${i}">${b2b.length?`⚠️ 바로 앞 공연에도 나와요: ${b2b.map(esc).join(', ')}`:''}</div></td>
+      <td><div class="tm"><input class="t" data-a="m" value="${esc(a.m)}" inputmode="numeric" placeholder="0"><span>분</span>
+        <input class="t" data-a="s" value="${esc(a.s)}" inputmode="numeric" placeholder="0"><span>초</span></div></td>
+      <td style="min-width:100px"><input class="t" data-a="memo" value="${esc(a.memo)}" placeholder="예) 음원 USB, 매트"></td>
+      <td><div class="ops"><button data-up="${i}" ${i===0?'disabled':''} title="위로">▲</button><button data-dn="${i}" ${i===S.acts.length-1?'disabled':''} title="아래로">▼</button><button data-del="${i}" title="지우기">🗑</button></div></td>
+    </tr>`;
+  }).join('');
+}
+function chipsHTML(a,cnt){ return people(a).map(n=>`<span class="chip ${cnt[n]>1?'dup':''}">${esc(n)}${cnt[n]>1?` ×${cnt[n]}`:''}</span>`).join(''); }
+function counts(){ const c={}; S.acts.forEach(a=>people(a).forEach(n=>c[n]=(c[n]||0)+1)); return c; }
+
+/* 글자 칠 때마다 표 전체를 다시 그리면 입력 칸 포커스가 날아간다 → 바뀌는 부분만 고친다 */
+function refresh(){
+  const st=starts(), cnt=counts();
+  S.acts.forEach((a,i)=>{
+    const s=document.querySelector(`[data-st="${i}"]`); if(s) s.textContent=S.start?clock(S.start,st[i]):'';
+    const c=document.querySelector(`[data-chips="${i}"]`); if(c) c.innerHTML=chipsHTML(a,cnt);
+    const b2b=backToBack(i);
+    const w=document.querySelector(`[data-w="${i}"]`); if(w) w.innerHTML=b2b.length?`⚠️ 바로 앞 공연에도 나와요: ${b2b.map(esc).join(', ')}`:'';
+    const tr=document.querySelector(`tr[data-i="${i}"]`); if(tr) tr.classList.toggle('warn',!!b2b.length);
+    const ib=document.querySelector(`[data-pal="${i}"]`); if(ib) ib.innerHTML=icHTML(a.kind)||'<span style="font-size:15px;color:#b9b2cc">고르기</span>';
+  });
+  drawTotal(); drawWho(); drawMissing();
+}
+function drawTotal(){
+  const show=S.acts.reduce((t,a)=>t+secs(a),0);
+  const g=gap()*Math.max(0,S.acts.length-1);
+  const all=show+g; const cnt=Object.keys(counts()).length;
+  const noTime=S.acts.filter(a=>(a.name||a.who)&&!secs(a)).length;
+  $('#total').innerHTML=`<span>⏱️ 합계</span><span class="big">${fmt(all).replace('분','<small>분</small>').replace('초','<small>초</small>')}</span>
+    <span class="sm">공연 <b>${S.acts.length}개</b>${g?` · 공연 시간 <b>${fmt(show)}</b> + 준비 시간 <b>${fmt(g)}</b>`:''} · 출연 친구 <b>${cnt}명</b>
+    ${S.start?` · <b>${clock(S.start,0)}</b> 시작 → <b>${clock(S.start,all)}</b> 끝`:''}</span>
+    ${noTime?`<span class="sm" style="color:var(--warn)">⏳ 시간을 안 넣은 공연 ${noTime}개</span>`:''}`;
+}
+function drawWho(){
+  const cnt=counts(); const names=Object.keys(cnt);
+  if(!names.length){ $('#who').innerHTML='<p class="hint">공연에 친구 이름을 넣으면 여기에 모여요.</p>'; return; }
+  const b2b=new Set(); S.acts.forEach((a,i)=>backToBack(i).forEach(n=>b2b.add(n)));
+  const where=n=>S.acts.map((a,i)=>people(a).includes(n)?i+1:0).filter(Boolean);
+  names.sort((x,y)=>cnt[y]-cnt[x] || x.localeCompare(y,'ko'));
+  $('#who').innerHTML=names.map(n=>`<div class="row ${cnt[n]>1?'many':''}"><span>${b2b.has(n)?'⚠️ ':''}${esc(n)}</span>
+    <span class="c">${cnt[n]}번 · ${where(n).map(k=>k+'번').join(', ')}</span></div>`).join('');
+}
+function drawMissing(){
+  const list=S.roster.split(/[\n,\t]+/).map(t=>t.replace(/^\(?\d+\)?[.)\]]?\s*/,'').trim()).filter(Boolean);
+  if(!list.length){ $('#missing').innerHTML=''; return; }
+  const cnt=counts(); const miss=list.filter(n=>!cnt[n]);
+  $('#missing').innerHTML= miss.length
+    ? `<p class="hint" style="margin-top:10px">아직 공연에 없는 친구 <b>${miss.length}명</b></p><div class="missing">${miss.map(n=>`<span>${esc(n)}</span>`).join('')}</div>`
+    : `<p class="ok" style="margin-top:10px">🎉 ${list.length}명 모두 공연에 나와요!</p>`;
+}
+function render(){
+  document.querySelectorAll('[data-k]').forEach(el=>el.value=S[el.dataset.k]||'');
+  $('#roster').value=S.roster;
+  drawRows(); drawTotal(); drawWho(); drawMissing();
+}
+
+/* ── 이벤트 ── */
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.k){ S[t.dataset.k]=t.value; save(); if(t.dataset.k==='title'||t.dataset.k==='klass') return; refresh(); return; }
+  if(t.dataset.a){ const i=+t.closest('tr').dataset.i; S.acts[i][t.dataset.a]=t.value; save(); refresh(); return; }
+  if(t.id==='roster'){ S.roster=t.value; save(); drawMissing(); }
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');
+  if(!b || !b.closest('.pal')) closePal();
+  if(!b) return; const d=b.dataset;
+  if(d.pal!==undefined){ openPal(+d.pal,b); return; }
+  if(d.pick!==undefined){ const i=+b.closest('.pal').dataset.i; S.acts[i].kind=d.pick; save(); closePal(); render(); return; }
+  if(d.up){ const i=+d.up; [S.acts[i-1],S.acts[i]]=[S.acts[i],S.acts[i-1]]; save(); render(); return; }
+  if(d.dn){ const i=+d.dn; [S.acts[i+1],S.acts[i]]=[S.acts[i],S.acts[i+1]]; save(); render(); return; }
+  if(d.del){ const i=+d.del, a=S.acts[i];
+    if((a.name||a.who) && !confirm(`${i+1}번 「${a.name||'공연'}」을(를) 지울까요?`)) return;
+    S.acts.splice(i,1); if(!S.acts.length) S.acts.push(newAct()); save(); render(); return; }
+});
+$('#btnAdd').onclick=()=>{ S.acts.push(newAct()); save(); render();
+  const all=document.querySelectorAll('[data-a="name"]'); const el=all[all.length-1]; el.focus(); el.scrollIntoView({block:'center'}); };
+
+/* 인쇄: 화면용 입력 칸 대신 깔끔한 표를 따로 만든다 */
+$('#btnPrint').onclick=()=>{
+  const st=starts(); const show=S.acts.reduce((t,a)=>t+secs(a),0); const all=show+gap()*Math.max(0,S.acts.length-1);
+  const acts=S.acts.filter(a=>a.name||a.who||secs(a));
+  const idx=a=>S.acts.indexOf(a);
+  $('#print').innerHTML=`<h1>🎭 ${esc(S.title||'꿈끼 발표회')}</h1>
+    <div class="meta">${[S.klass,S.date,S.start?clock(S.start,0)+' 시작':''].filter(Boolean).map(esc).join(' · ')}</div>
+    <table><thead><tr><th>번호</th>${S.start?'<th>시각</th>':''}<th>종목</th><th>제목</th><th>참가 학생</th><th>소요 시간</th><th>비고</th></tr></thead>
+    <tbody>${acts.map((a,k)=>`<tr><td class="n">${k+1}</td>${S.start?`<td class="tc">${clock(S.start,st[idx(a)])}</td>`:''}
+      <td style="white-space:nowrap">${icHTML(a.kind)} ${esc(a.kind)}</td><td>${esc(a.name)}</td><td>${people(a).map(esc).join(', ')}</td><td class="tc">${secs(a)?fmt(secs(a)):''}</td><td>${esc(a.memo)}</td></tr>`).join('')}</tbody>
+    <tfoot><tr><td colspan="${S.start?7:6}">⏱️ 합계 ${fmt(all)} · 공연 ${acts.length}개 · 출연 친구 ${Object.keys(counts()).length}명${gap()?` (준비 시간 ${fmt(gap())}씩 포함)`:''}${S.start?` · ${clock(S.start,0)} ~ ${clock(S.start,all)}`:''}</td></tr></tfoot></table>`;
+  window.print();
+};
+
+/* 파일 저장·불러오기 (다른 컴퓨터로 옮길 때) */
+$('#btnSave').onclick=()=>{
+  const blob=new Blob([JSON.stringify({app:'kkumkki',v:1,data:S},null,1)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`${(S.title||'꿈끼발표회').replace(/[\\/:*?"<>|]/g,'')}_정리표.json`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000); toast('파일로 저장했어요 💾');
+};
+$('#btnLoad').onclick=()=>$('#fileIn').click();
+$('#fileIn').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{ const j=JSON.parse(await f.text()); if(j.app!=='kkumkki') throw 0;
+    if(!confirm('지금 정리표 대신 이 파일 내용으로 바꿀까요?')) return;
+    S=Object.assign(blank(),j.data); save(); render(); toast('불러왔어요 📂');
+  }catch(err){ alert('정리표에서 저장한 파일이 아니에요.'); }
+  e.target.value='';
+};
+
+document.body.insertAdjacentHTML('beforeend',`<datalist id="kindList">${ICONS.map(x=>`<option value="${x.k}">`).join('')}</datalist>`);
+/* 종목 고르기 판 */
+function openPal(i,btn){
+  closePal();
+  const p=document.createElement('div'); p.className='pal'; p.dataset.i=i;
+  p.innerHTML=ICONS.map(x=>`<button data-pick="${x.k}"><span class="ic">${x.ic}</span>${x.k}</button>`).join('');
+  document.body.appendChild(p);
+  const r=btn.getBoundingClientRect();
+  p.style.left=Math.max(8,Math.min(r.left+scrollX, scrollX+innerWidth-p.offsetWidth-8))+'px';
+  p.style.top=(r.bottom+scrollY+6)+'px';
+}
+function closePal(){ document.querySelectorAll('.pal').forEach(p=>p.remove()); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePal(); });
+render();
+</script>
+</body>
+</html>
