@@ -159,6 +159,38 @@ html.b1 #print, html.b2 #print{color:#111}
   #print tfoot td{font-family:var(--ff),'Jua'; background:#faf7ff; -webkit-print-color-adjust:exact; print-color-adjust:exact}
   @page{size:A4; margin:14mm 12mm}
 }
+
+/* 📺 크게 보기 — 표만 화면 가득, 글씨는 화면에 맞춰 최대한 크게 */
+#big{position:fixed; inset:0; z-index:90; display:flex; flex-direction:column; padding:2vh 2.2vw 1.6vh;
+  background:linear-gradient(150deg,#fff6ef,#f4efff 55%,#eef9ff); font-family:var(--ff),'Gowun Dodum',sans-serif; color:#241e33}
+#big[hidden]{display:none}
+#big .bh{display:flex; align-items:center; gap:1vw; margin-bottom:1.2vh}
+#big .bh h1{flex:1; margin:0; font-family:var(--ff),'Jua'; font-weight:normal; font-size:clamp(26px,4.4vh,60px); line-height:1.15}
+#big .bh .meta{color:#6d6588; font-size:clamp(16px,2.4vh,30px); white-space:nowrap}
+#big .bx{width:clamp(40px,5vh,64px); height:clamp(40px,5vh,64px); border-radius:50%; background:#fff; border:2px solid var(--line); font-size:clamp(18px,2.6vh,30px); box-shadow:var(--shadow); flex:none}
+#big .bw{flex:1; min-height:0; overflow:hidden; border-radius:18px; background:#fff; box-shadow:0 6px 0 rgba(0,0,0,.06); border:3px solid #e6dcf7}
+#big table{width:100%; height:100%; border-collapse:collapse; font-size:var(--bf,30px); line-height:1.22}
+#big th{background:#8b6fd6; color:#fff; font-family:var(--ff),'Jua'; font-weight:normal; padding:.32em .5em; font-size:.78em; white-space:nowrap; text-align:center}
+#big td{padding:.28em .5em; border-top:2px solid #eee8f7; vertical-align:middle; word-break:keep-all; overflow-wrap:anywhere}
+#big tbody tr:nth-child(even) td{background:#faf8ff}
+#big td.n{text-align:center; width:1%}
+#big td.n b{display:inline-grid; place-items:center; min-width:1.6em; height:1.6em; border-radius:50%; background:#ffe1ec; color:#d2457a; font-family:var(--ff),'Jua'; font-weight:normal}
+#big td.k{white-space:nowrap; width:1%}
+#big td.t{font-family:var(--ff),'Jua'}
+#big td.w{color:#3c3360}
+#big td.tc{text-align:center; white-space:nowrap; width:1%; color:#5a4f80}
+#big td.m{color:#7a7196; font-size:.8em}
+#big tr.cur td{background:#fff3b8!important; box-shadow:inset 0 3px 0 #ffd23f, inset 0 -3px 0 #ffd23f}
+#big tr.cur td.n b{background:#ff7aa5; color:#fff; animation:bpulse 1.2s ease-in-out infinite}
+#big tr.done td{opacity:.45}
+@keyframes bpulse{50%{transform:scale(1.15)}}
+#big tbody tr{cursor:pointer}
+#big .bf{margin-top:1vh; display:flex; justify-content:space-between; gap:2vw; font-size:clamp(15px,2.3vh,30px); color:#5a4f80}
+#big .bf b{color:#d2457a}
+html.b1 #big td, html.b1 #big .bh h1{-webkit-text-stroke:.022em currentColor}
+html.b2 #big td, html.b2 #big .bh h1{-webkit-text-stroke:.042em currentColor}
+html.hasbold #big td{font-weight:700}
+@media print{ #big{display:none!important} }
 </style>
 </head>
 <body>
@@ -168,6 +200,7 @@ html.b1 #print, html.b2 #print{color:#111}
   <button class="btn small" id="btnSave">💾 파일로 저장</button>
   <button class="btn small" id="btnLoad">📂 불러오기</button>
   <input type="file" id="fileIn" accept=".json,application/json" hidden>
+  <button class="btn primary" id="btnBig">📺 크게 보기</button>
   <button class="btn pink" id="btnPrint">🖨️ 인쇄</button>
 </header>
 
@@ -206,6 +239,11 @@ html.b1 #print, html.b2 #print{color:#111}
   </div>
 </div>
 
+<div id="big" hidden>
+  <div class="bh"><h1 id="bigT"></h1><span class="meta" id="bigM"></span><button class="bx" id="bigX" title="닫기 (Esc)">✕</button></div>
+  <div class="bw" id="bigW"></div>
+  <div class="bf"><span id="bigF"></span><span>👆 공연을 누르면 「지금 공연」 표시 · ← → 키로 넘기기 · Esc 닫기</span></div>
+</div>
 <div id="print"></div>
 <div class="toast" id="toast"></div>
 
@@ -564,6 +602,45 @@ function editNo(el,i){
 
 function closePal(){ document.querySelectorAll('.pal').forEach(p=>p.remove()); }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePal(); });
+
+/* ── 📺 크게 보기: 화면 가득 표 + 글씨는 넘치지 않는 최대 크기로 ── */
+let bigCur=-1;
+function bigActs(){ return S.acts.filter(a=>a.name||a.who||a.kind||secs(a)); }
+function drawBig(){
+  const st=starts(), acts=bigActs(), idx=a=>S.acts.indexOf(a);
+  const hasMemo=acts.some(a=>String(a.memo||'').trim()), hasT=!!S.start;
+  const show=S.acts.reduce((t,a)=>t+secs(a),0), all=show+gap()*Math.max(0,S.acts.length-1);
+  $('#bigT').textContent='🎭 '+(S.title||'꿈끼 발표회');
+  $('#bigM').textContent=[S.klass,S.date].filter(Boolean).join(' · ');
+  $('#bigW').innerHTML=`<table><thead><tr><th>번호</th>${hasT?'<th>시각</th>':''}<th>종목</th><th>제목</th><th>참가 학생</th><th>시간</th>${hasMemo?'<th>비고</th>':''}</tr></thead>
+    <tbody>${acts.map((a,k)=>`<tr data-bk="${k}" class="${k===bigCur?'cur':k<bigCur?'done':''}"><td class="n"><b>${k+1}</b></td>${hasT?`<td class="tc">${clock(S.start,st[idx(a)])}</td>`:''}
+      <td class="k">${icHTML(a.kind)} ${esc(a.kind)}</td><td class="t">${esc(a.name)}</td><td class="w">${people(a).map(esc).join(', ')}</td>
+      <td class="tc">${secs(a)?fmt(secs(a)):''}</td>${hasMemo?`<td class="m">${esc(a.memo)}</td>`:''}</tr>`).join('')}</tbody></table>`;
+  $('#bigF').innerHTML=`⏱️ 합계 <b>${fmt(all)}</b> · 공연 <b>${acts.length}개</b>${S.start?` · ${clock(S.start,0)} ~ ${clock(S.start,all)}`:''}`;
+  fitBig();
+}
+function fitBig(){
+  const w=$('#bigW'), t=w.querySelector('table'); if(!t) return;
+  const ok=px=>{ t.style.setProperty('--bf',px+'px'); return w.scrollHeight<=w.clientHeight+1 && w.scrollWidth<=w.clientWidth+1; };
+  let lo=10, hi=120;
+  while(hi-lo>.5){ const m=(lo+hi)/2; if(ok(m)) lo=m; else hi=m; }
+  ok(Math.floor(lo));
+}
+function openBig(){ closePal(); bigCur=-1; $('#big').hidden=false; drawBig(); document.fonts&&document.fonts.ready.then(fitBig);
+  const de=document.documentElement; if(de.requestFullscreen && !document.fullscreenElement) de.requestFullscreen().catch(()=>{}); }
+function closeBig(){ $('#big').hidden=true; if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
+function stepBig(d){ const n=bigActs().length; bigCur=Math.max(-1,Math.min(n-1,bigCur+d)); drawBig(); }
+$('#btnBig').onclick=openBig;
+$('#bigX').onclick=closeBig;
+$('#bigW').addEventListener('click',e=>{ const r=e.target.closest('tr[data-bk]'); if(!r) return; const k=+r.dataset.bk; bigCur= bigCur===k? -1 : k; drawBig(); });
+document.addEventListener('keydown',e=>{
+  if($('#big').hidden) return;
+  if(e.key==='Escape'){ closeBig(); return; }
+  if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){ e.preventDefault(); stepBig(1); }
+  if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){ e.preventDefault(); stepBig(-1); }
+});
+document.addEventListener('fullscreenchange',()=>{ if(!$('#big').hidden) setTimeout(fitBig,60); });
+window.addEventListener('resize',()=>{ if(!$('#big').hidden) fitBig(); });
 applyFont();
 render();
 </script>
