@@ -702,6 +702,19 @@ document.addEventListener('fullscreenchange',()=>{ if(!$('#big').hidden) setTime
 window.addEventListener('resize',()=>{ if(!$('#big').hidden) fitBig(); });
 applyFont();
 render();
+/* 불러오기 링크: #load=코드 → 온라인에 담아 둔 정리표로 채운다 (다른 기기에서 이어서 고치기) */
+(async()=>{
+  const m=location.hash.match(/load=([a-z0-9]{4,20})/i); if(!m) return;
+  try{
+    const r=await fetch('https://matchmaker-28187-default-rtdb.asia-southeast1.firebasedatabase.app/today_todo_img/kkumkkiprog/'+m[1]+'.json');
+    const d=JSON.parse(await r.json()); if(!d||!Array.isArray(d.acts)) throw 0;
+    const has=S.acts.some(a=>a.name||a.who);
+    if(has && !confirm('불러오기 링크로 정리표를 채울까요?\n(이 기기에 있던 내용은 바뀌어요)')) { history.replaceState(null,'',location.pathname); return; }
+    const keep={font:S.font,weight:S.weight,size:S.size};
+    S=Object.assign(blank(),d); for(const k in keep) if(keep[k]!==undefined && S[k]===undefined) S[k]=keep[k];
+    save(); history.replaceState(null,'',location.pathname); applyFont(); render(); toast('📥 정리표를 불러왔어요');
+  }catch(e){ toast('불러오기 링크를 열지 못했어요'); }
+})();
 </script>
 </body>
 </html>
