@@ -230,6 +230,7 @@ html.hasbold #big td{font-weight:700}
   <button class="btn small" id="btnFont">✏️ 글씨체·크기</button>
   <button class="btn small" id="btnSave">💾 파일로 저장</button>
   <button class="btn small" id="btnLoad">📂 불러오기</button>
+  <button class="btn small" id="btnSend">📤 다른 기기로 보내기</button>
   <input type="file" id="fileIn" accept=".json,application/json" hidden>
   <button class="btn primary" id="btnBig">📺 크게 보기</button>
   <button class="btn pink" id="btnPrint">🖨️ 인쇄</button>
@@ -702,6 +703,29 @@ document.addEventListener('fullscreenchange',()=>{ if(!$('#big').hidden) setTime
 window.addEventListener('resize',()=>{ if(!$('#big').hidden) fitBig(); });
 applyFont();
 render();
+/* 다른 기기로 보내기: 지금 정리표를 온라인에 담고 #load=코드 링크를 만든다 */
+$('#btnSend').onclick=async()=>{
+  const code='k'+Math.random().toString(36).slice(2,9).padEnd(7,'0');
+  toast('☁️ 올리는 중…');
+  try{
+    const r=await fetch('https://matchmaker-28187-default-rtdb.asia-southeast1.firebasedatabase.app/today_todo_img/kkumkkiprog/'+code+'.json',{method:'PUT',body:JSON.stringify(JSON.stringify(S))});
+    if(!r.ok) throw 0;
+  }catch(e){ toast('올리지 못했어요. 인터넷 연결을 확인해 주세요'); return; }
+  const url=location.origin+location.pathname+'#load='+code;
+  const bg=document.createElement('div'); bg.className='fontbg';
+  bg.innerHTML=`<div class="fontsheet"><h2>📤 다른 기기로 보내기</h2>
+    <p class="hint">이 링크를 집 컴퓨터나 휴대폰에서 열면 <b>지금 정리표 그대로</b> 이어서 고칠 수 있어요.<br>다 고친 뒤 다시 이 버튼을 누르면 새 링크가 생겨요. (링크는 열 때마다 그때 내용으로 덮어써요)</p>
+    <input class="t" readonly value="${url}" style="width:100%;font-size:15px;padding:8px;margin:8px 0" onclick="this.select()">
+    <div style="text-align:right;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+      ${navigator.share?'<button class="btn small" data-share>💬 카톡 등으로 보내기</button>':''}
+      <button class="btn small" data-copy>📋 링크 복사</button><button class="btn primary" data-close>닫기</button></div></div>`;
+  document.body.appendChild(bg);
+  bg.addEventListener('click',async e=>{
+    if(e.target.closest('[data-copy]')){ try{ await navigator.clipboard.writeText(url); toast('📋 링크를 복사했어요'); }catch(_){ bg.querySelector('input').select(); toast('링크를 길게 눌러 복사해 주세요'); } return; }
+    if(e.target.closest('[data-share]')){ try{ await navigator.share({title:S.title||'꿈끼 발표회 정리표',url}); }catch(_){} return; }
+    if(e.target===bg || e.target.closest('[data-close]')) bg.remove();
+  });
+};
 /* 불러오기 링크: #load=코드 → 온라인에 담아 둔 정리표로 채운다 (다른 기기에서 이어서 고치기) */
 (async()=>{
   const m=location.hash.match(/load=([a-z0-9]{4,20})/i); if(!m) return;
