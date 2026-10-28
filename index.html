@@ -200,6 +200,37 @@ html.b1 #print, html.b2 #print{color:#111}
 #big{position:fixed; inset:0; z-index:90; display:flex; flex-direction:column; padding:2vh 2.2vw 1.6vh;
   background:linear-gradient(150deg,#fff6ef,#f4efff 55%,#eef9ff); font-family:var(--ff),'Gowun Dodum',sans-serif; color:#241e33}
 #big[hidden]{display:none}
+/* ── 🎬 무대 화면(학부모님용): 한 무대씩 크게 ── */
+#stg{position:fixed;inset:0;z-index:95;background:radial-gradient(ellipse at 50% 35%,#4a1630 0%,#250a1a 60%,#12050d 100%);color:#fff7e8;overflow:hidden;font-family:'Jua',sans-serif;cursor:pointer;user-select:none}
+#stg[hidden]{display:none}
+#stg .cl,#stg .cr{position:absolute;top:0;bottom:0;width:13vw;background:repeating-linear-gradient(90deg,#7d0f24 0 2.2vw,#a3192f 2.2vw 3.4vw,#6a0b1d 3.4vw 4.4vw);box-shadow:0 0 6vw #000a}
+#stg .cl{left:0;border-radius:0 0 60% 0/0 0 18% 0}#stg .cr{right:0;border-radius:0 0 0 60%/0 0 0 18%}
+#stg .vl{position:absolute;left:0;right:0;top:0;height:10vh;background:repeating-linear-gradient(90deg,#8e1328 0 3vw,#b2203a 3vw 4.6vw);border-bottom:.6vh solid #e2b552;box-shadow:0 1vh 3vh #000a;clip-path:polygon(0 0,100% 0,100% 70%,97% 100%,94% 70%,91% 100%,88% 70%,85% 100%,82% 70%,79% 100%,76% 70%,73% 100%,70% 70%,67% 100%,64% 70%,61% 100%,58% 70%,55% 100%,52% 70%,49% 100%,46% 70%,43% 100%,40% 70%,37% 100%,34% 70%,31% 100%,28% 70%,25% 100%,22% 70%,19% 100%,16% 70%,13% 100%,10% 70%,7% 100%,4% 70%,0 100%)}
+#stg .spot{position:absolute;left:50%;top:-10vh;width:90vh;height:120vh;transform:translateX(-50%);background:radial-gradient(ellipse at 50% 60%,#fff3c833 0%,#fff3c80d 45%,transparent 70%);pointer-events:none}
+#stgC{position:absolute;left:14vw;right:14vw;top:12vh;bottom:9vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+#stgC.in>*{animation:sIn .7s cubic-bezier(.2,.8,.3,1) both}
+#stgC.in>*:nth-child(2){animation-delay:.08s}#stgC.in>*:nth-child(3){animation-delay:.16s}#stgC.in>*:nth-child(4){animation-delay:.24s}#stgC.in>*:nth-child(5){animation-delay:.32s}
+@keyframes sIn{from{opacity:0;transform:translateY(3vh) scale(.97)}}
+#stg .rb{display:inline-block;background:linear-gradient(#f3cf6b,#d29b2e);color:#5a1020;font-size:3.6vh;padding:.5vh 3vh;border-radius:99px;box-shadow:0 .5vh 0 #8a5a12}
+#stg .ico{width:17vh;height:17vh;margin:3vh 0 1vh;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fffaf0,#f6e3c0);display:grid;place-items:center;font-size:10vh;box-shadow:0 0 5vh #ffd98a55,inset 0 -.8vh 0 #0001}
+#stg .ico svg{width:11vh;height:11vh}
+#stg .kd{font-size:3.4vh;color:#f3cf6b;letter-spacing:.3em}
+#stg .tt{font-size:var(--tf,11vh);line-height:1.15;margin:1.5vh 0 2.5vh;text-shadow:0 .6vh 0 #0006,0 0 4vh #ffcf7a55;word-break:keep-all;max-width:100%}
+#stg .ws{display:flex;flex-wrap:wrap;justify-content:center;gap:1.2vh 1.4vh;max-width:100%}
+#stg .ws span{font-size:var(--wf,5vh);background:#fff7e81a;border:.3vh solid #f3cf6b88;border-radius:99px;padding:.4vh 2.4vh;font-family:'Gowun Dodum','Jua',sans-serif;font-weight:700}
+#stg .ws span.all{background:#f3cf6b;color:#5a1020;border-color:#f3cf6b}
+#stg .nx{position:absolute;left:14vw;right:14vw;bottom:2.4vh;display:flex;justify-content:center;align-items:center;gap:1.4vh;font-size:2.8vh;color:#f6e3c0cc;font-family:'Gowun Dodum',sans-serif}
+#stg .nx b{font-family:'Jua';color:#f3cf6b;font-weight:400}
+#stg .big1{font-size:13vh;line-height:1.1;text-shadow:0 .7vh 0 #0006,0 0 5vh #ffcf7a66}
+#stg .sub1{font-size:4.2vh;color:#f6e3c0;margin-top:2vh;font-family:'Gowun Dodum',sans-serif;font-weight:700;letter-spacing:.15em}
+#stg .sbar{position:absolute;right:1.5vw;bottom:1.5vh;display:flex;gap:.6vw;align-items:center;opacity:0;transition:opacity .4s;font-family:'Gowun Dodum',sans-serif}
+#stg.mv .sbar{opacity:1}
+#stg .sbar button{background:#ffffff22;color:#fff;border:1px solid #ffffff44;border-radius:99px;padding:.6vh 1.2vw;font-size:1.8vh;cursor:pointer}
+#stg .sbar span{font-size:1.8vh;color:#fff9}
+#stg .dots{display:flex;gap:.6vh;margin-top:3vh}#stg .dots i{width:1.1vh;height:1.1vh;border-radius:50%;background:#ffffff33}#stg .dots i.on{background:#f3cf6b}#stg .dots i.dn{background:#f3cf6b88}
+#stg .fx{position:absolute;inset:0;pointer-events:none}
+#stg .fx i{position:absolute;top:-4vh;font-style:normal;font-size:3vh;animation:fall linear forwards;opacity:.9}
+@keyframes fall{to{transform:translateY(115vh) rotate(540deg)}}
 #big .bh{display:flex; align-items:center; gap:1vw; margin-bottom:1.2vh}
 #big .bh h1{flex:1; margin:0; font-family:var(--ff),'Jua'; font-weight:normal; font-size:clamp(26px,4.4vh,60px); line-height:1.15}
 #big .bh .meta{color:#6d6588; font-size:clamp(16px,2.4vh,30px); white-space:nowrap}
@@ -240,6 +271,7 @@ html.hasbold #big td{font-weight:700}
   <button class="btn small" id="btnSend">📤 다른 기기로 보내기</button>
   <input type="file" id="fileIn" accept=".json,application/json" hidden>
   <button class="btn primary" id="btnBig">📺 크게 보기</button>
+  <button class="btn primary" id="btnStg" style="background:linear-gradient(135deg,#b3263f,#e0566b);border-color:#9a1f35">🎬 무대 화면</button>
   <button class="btn pink" id="btnPrint">🖨️ 인쇄</button>
 </header>
 
@@ -288,6 +320,11 @@ html.hasbold #big td{font-weight:700}
   <div class="bh"><h1 id="bigT"></h1><span class="meta" id="bigM"></span><button class="bx" id="bigX" title="닫기 (Esc)">✕</button></div>
   <div class="bw" id="bigW"></div>
   <div class="bf"><span id="bigF"></span><span>👆 공연을 누르면 「지금 공연」 표시 · ← → 키로 넘기기 · Esc 닫기</span></div>
+</div>
+<div id="stg" hidden>
+  <div class="cl"></div><div class="cr"></div><div class="vl"></div><div class="spot"></div>
+  <div id="stgC"></div>
+  <div class="sbar"><span id="stgP"></span><button data-s="-1">◀ 이전</button><button data-s="1">다음 ▶</button><button data-s="x">✕ 닫기</button></div>
 </div>
 <div id="print"></div>
 <div class="toast" id="toast"></div>
@@ -719,6 +756,47 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('fullscreenchange',()=>{ if(!$('#big').hidden) setTimeout(fitBig,60); });
 window.addEventListener('resize',()=>{ if(!$('#big').hidden) fitBig(); });
+/* ── 🎬 무대 화면: 표지 → 시작 인사 → 무대마다 한 장 → 마무리 인사 → 감사 ── */
+let stgI=0, stgMv=0;
+function stgSlides(){ const acts=bigActs(); const L=[{t:'cover'}]; if(openT()||true) L.push({t:'open'}); acts.forEach((a,k)=>L.push({t:'act',a,k,n:acts.length,next:acts[k+1]})); L.push({t:'close'}); L.push({t:'end'}); return L; }
+const icBig=k=>{ const ic=iconOf(k)||'⭐'; return `<div class="ico">${ic}</div>`; };
+const whoChips=a=> isAll(a)? `<span class="all">🙌 ${esc(S.klass||'우리 반')} 모두</span>`+people(a).filter(n=>!ALL_RE.test(n)).map(n=>`<span>${esc(n)}</span>`).join('') : people(a).map(n=>`<span>${esc(n)}</span>`).join('');
+function stgDraw(){
+  const L=stgSlides(); stgI=Math.max(0,Math.min(L.length-1,stgI)); const s=L[stgI], c=$('#stgC'), ttl=esc(S.title||'꿈끼 발표회');
+  const nAct=L.filter(x=>x.t==='act').length;
+  const dots=k=>nAct>1&&nAct<=40?`<div class="dots">${Array.from({length:nAct},(_,i)=>`<i class="${i===k?'on':i<k?'dn':''}"></i>`).join('')}</div>`:'';
+  let h='', nx='';
+  if(s.t==='cover'){ h=`<div class="rb">✨ ${esc([S.klass,S.date].filter(Boolean).join(' · ')||'어서 오세요')} ✨</div><div class="big1" style="margin-top:4vh">${ttl}</div><div class="sub1">곧 시작합니다 · 휴대 전화는 무음으로 부탁드려요</div>`; }
+  else if(s.t==='open'){ h=`<div class="ico">🎤</div><div class="big1">시작 인사</div><div class="sub1">와 주셔서 감사합니다</div>`; const a=L.find(x=>x.t==='act'); if(a) nx=a.a; }
+  else if(s.t==='act'){ const a=s.a; h=`<div class="rb">${s.k+1}번째 무대</div>${icBig(a.kind)}<div class="kd">${esc(a.kind||'')}</div><div class="tt">${esc(a.name||a.kind||'')}</div><div class="ws">${whoChips(a)}</div>${dots(s.k)}`; nx=s.next; }
+  else if(s.t==='close'){ h=`<div class="ico">🎤</div><div class="big1">마무리 인사</div><div class="sub1">끝까지 함께해 주셔서 고맙습니다</div>`; }
+  else { h=`<div class="ico">💐</div><div class="big1">감사합니다</div><div class="sub1">${esc(S.klass||'')} 어린이들의 무대를 응원해 주셔서 고맙습니다</div>`; }
+  c.classList.remove('in'); c.innerHTML=h; void c.offsetWidth; c.classList.add('in');
+  const old=$('#stg .nx'); if(old) old.remove();
+  if(nx){ const d=document.createElement('div'); d.className='nx'; d.innerHTML=`다음 무대 ▸ <b>${iconOf(nx.kind)&&!/^<svg/.test(iconOf(nx.kind))?iconOf(nx.kind)+' ':''}${esc(nx.name||nx.kind||'')}</b> ${isAll(nx)?'· 모두':people(nx).length?'· '+people(nx).map(esc).join(', '):''}`; $('#stg').appendChild(d); }
+  // 글씨가 넘치지 않게: 제목·이름 크기 맞추기
+  const tt=c.querySelector('.tt'); if(tt){ let f=11; tt.style.setProperty('--tf',f+'vh'); while(f>4 && (tt.scrollWidth>tt.clientWidth+2 || c.scrollHeight>c.clientHeight+2)){ f-=.5; tt.style.setProperty('--tf',f+'vh'); } }
+  const ws=c.querySelector('.ws'); if(ws){ let f=5; ws.style.setProperty('--wf',f+'vh'); while(f>2.4 && c.scrollHeight>c.clientHeight+2){ f-=.3; ws.style.setProperty('--wf',f+'vh'); } }
+  $('#stgP').textContent=`${stgI+1} / ${L.length}`;
+  if(s.t==='end'||(s.t==='act'&&/합창|격파/.test(s.a.kind+s.a.name))) stgFx(s.t==='end'?['💐','🌸','✨','💖']:['✨','⭐','🎉']);
+}
+function stgFx(E){ const fx=document.createElement('div'); fx.className='fx'; for(let i=0;i<34;i++){ const e=document.createElement('i'); e.textContent=E[i%E.length]; e.style.left=Math.random()*100+'vw'; e.style.animationDuration=(4+Math.random()*4)+'s'; e.style.animationDelay=Math.random()*2+'s'; fx.appendChild(e); } $('#stg').appendChild(fx); setTimeout(()=>fx.remove(),11000); }
+function openStg(){ closePal(); if(!document.getElementById('stgFont')){ const l=document.createElement('link'); l.id='stgFont'; l.rel='stylesheet'; l.href='https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap'; document.head.appendChild(l); }
+  stgI=0; $('#stg').hidden=false; stgDraw(); document.fonts&&document.fonts.ready.then(stgDraw);
+  const de=document.documentElement; if(de.requestFullscreen && !document.fullscreenElement) de.requestFullscreen().catch(()=>{}); }
+function closeStg(){ $('#stg').hidden=true; if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
+function stgStep(d){ stgI+=d; stgDraw(); }
+$('#btnStg').onclick=openStg;
+$('#stg').addEventListener('click',e=>{ const b=e.target.closest('[data-s]'); if(b){ e.stopPropagation(); const v=b.dataset.s; if(v==='x') closeStg(); else stgStep(+v); return; } stgStep(1); });
+$('#stg').addEventListener('mousemove',()=>{ $('#stg').classList.add('mv'); clearTimeout(stgMv); stgMv=setTimeout(()=>$('#stg').classList.remove('mv'),2500); });
+document.addEventListener('keydown',e=>{
+  if($('#stg').hidden) return;
+  if(e.key==='Escape'){ closeStg(); return; }
+  if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(e.key)){ e.preventDefault(); stgStep(1); }
+  if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)){ e.preventDefault(); stgStep(-1); }
+  if(e.key==='Home'){ stgI=0; stgDraw(); }
+});
+window.addEventListener('resize',()=>{ if(!$('#stg').hidden) stgDraw(); });
 applyFont();
 render();
 /* 다른 기기로 보내기: 지금 정리표를 온라인에 담고 #load=코드 링크를 만든다 */
