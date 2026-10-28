@@ -811,6 +811,7 @@ async function stgAuToggle(){ const s=stgSlides()[stgI]; if(!s||s.t!=='act') ret
   if(stgAuFor===a && $('#stg').classList.contains('vid')){ const v=$('#stgV'); if(v.paused) v.play(); else v.pause(); stgAuUi(); return; }
   if(stgAuFor===a && !stgAu.paused){ stgAu.pause(); stgAuUi(); return; }
   if(stgAuFor===a && stgAu.paused && stgAu.src){ stgAu.play(); stgAuUi(); return; }
+  if(!AUHAS.has(auKey(a)) && isRec(a)){ window.open('https://today119.github.io/recorder-karaoke/#show','reckaraoke'); return; }
   if(!AUHAS.has(auKey(a))){ toast('이 공연은 음원이 없어요 (정리표 🎵 버튼으로 넣기)'); return; }
   toast('🎵 음원 준비 중…'); const bl=await auGet(a); if(!bl){ toast('음원을 못 찾았어요'); return; }
   if(stgSlides()[stgI]?.a!==a) return;
@@ -818,7 +819,9 @@ async function stgAuToggle(){ const s=stgSlides()[stgI]; if(!s||s.t!=='act') ret
   if(isV){ v.src=URL.createObjectURL(bl); stgAuFor=a; $('#stg').classList.add('vid'); v.play().catch(()=>{}); stgAuUi(); return; }
   stgAu.src=URL.createObjectURL(bl); stgAu.volume=1; stgAuFor=a; stgAu.play().catch(()=>{}); stgAuUi(); }
 const stgV=()=>$('#stgV');
+const isRec=a=>/리코더/.test((a.kind||'')+(a.name||''));
 function stgAuUi(){ const b=$('#stgAuB'); if(!b) return; const s=stgSlides()[stgI]; const has=s&&s.t==='act'&&AUHAS.has(auKey(s.a));
+  if(s&&s.t==='act'&&!has&&isRec(s.a)){ b.style.display=''; b.textContent='🎼 리코더 공연 화면 열기 (Enter)'; return; }
   b.style.display=has?'':'none'; const vid=$('#stg').classList.contains('vid'), on= vid? !$('#stgV').paused : stgAuFor&&!stgAu.paused; b.textContent= on? '⏸ 멈춤 (Enter)' : vid? '▶ 영상 계속 (Enter)' : '🎵 음원 재생 (Enter)';
   $('#stg').classList.toggle('playing',!!stgAuFor&&!stgAu.paused); }
 stgAu.addEventListener('ended',()=>{ stgAuFor=null; stgAuUi(); });
