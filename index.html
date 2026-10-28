@@ -769,10 +769,14 @@ async function auIdb(k,v){ const db=await auDb; if(!db) return null; return new 
 async function auScan(){ // 묶음 읽기는 규칙상 막혀 있어서 공연마다 m 하나씩 확인
   const ks=[...new Set(S.acts.filter(x=>x.name||x.kind).map(auKey))]; await Promise.all(ks.map(async k=>{ try{ const m=await (await fetch(AUB+k+'m.json')).json(); if(m) AUHAS.add(k); }catch(e){} })); document.querySelectorAll('[data-au]').forEach(b=>{ const a=S.acts[+b.dataset.au]; if(a) b.classList.toggle('on',AUHAS.has(auKey(a))); }); }
 const auLoading=new Map();
-async function auGet(a){ const k=auKey(a); const b=await auIdb(k); if(b) return b; if(!AUHAS.has(k)) return null;
-  if(!auLoading.has(k)) auLoading.set(k,(async()=>{ try{ const m=await (await fetch(AUB+k+'m.json')).json(); if(!m) return null; const n=+String(m).split('|')[0]; const parts=await Promise.all(Array.from({length:n},(_,i)=>fetch(AUB+k+'p'+i+'.json').then(r=>r.json()))); if(parts.some(c=>typeof c!=='string')) return null; const u=parts.join(''); const bl=await (await fetch(u)).blob(); auIdb(k,bl); return bl; }catch(e){ return null; } finally{ setTimeout(()=>auLoading.delete(k),100); } })());
+// 기기 캐시는 {m,b}: 온라인 m(조각수|형식|파일명)이 바뀌면(잘라서 다시 올리면) 새로 받는다
+async function auMeta(k){ try{ const c=new AbortController(); setTimeout(()=>c.abort(),4000); return await (await fetch(AUB+k+'m.json',{signal:c.signal})).json(); }catch(e){ return undefined; } }
+async function auGet(a){ const k=auKey(a); const c=await auIdb(k), cb=c&&(c.b||(c instanceof Blob?c:null));
+  if(cb){ if(!AUHAS.has(k)) return cb; const m=await auMeta(k); if(m===undefined || m===null || c.m===m) return cb; }
+  if(!AUHAS.has(k)) return null;
+  if(!auLoading.has(k)) auLoading.set(k,(async()=>{ try{ const m=await (await fetch(AUB+k+'m.json')).json(); if(!m) return null; const n=+String(m).split('|')[0]; const parts=await Promise.all(Array.from({length:n},(_,i)=>fetch(AUB+k+'p'+i+'.json').then(r=>r.json()))); if(parts.some(c=>typeof c!=='string')) return null; const u=parts.join(''); const bl=await (await fetch(u)).blob(); auIdb(k,{m,b:bl}); return bl; }catch(e){ return null; } finally{ setTimeout(()=>auLoading.delete(k),100); } })());
   return auLoading.get(k); }
-async function auPut(a,file){ const k=auKey(a); await auIdb(k,file); AUHAS.add(k); refreshAu(); toast('🎵 음원을 넣었어요 · 온라인에도 보관 중…');
+async function auPut(a,file){ const k=auKey(a); await auIdb(k,{m:'local',b:file}); AUHAS.add(k); refreshAu(); toast('🎵 음원을 넣었어요 · 온라인에도 보관 중…');
   try{ const u=await new Promise(ok=>{ const r=new FileReader(); r.onload=()=>ok(r.result); r.readAsDataURL(file); }); const CH=640000, n=Math.ceil(u.length/CH);
     for(let i=0;i<n;i++){ const r=await fetch(AUB+k+'p'+i+'.json',{method:'PUT',body:JSON.stringify(u.slice(i*CH,(i+1)*CH))}); if(!r.ok) throw 0; }
     const r=await fetch(AUB+k+'m.json',{method:'PUT',body:JSON.stringify(n+'|'+(file.type||'audio/mpeg')+'|'+(file.name||''))}); if(!r.ok) throw 0; toast('☁️ 음원을 온라인에도 보관했어요');
