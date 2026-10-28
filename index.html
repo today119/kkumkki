@@ -86,6 +86,7 @@ textarea.t{display:block; resize:none; overflow:hidden; line-height:1.3}
 .ops{display:grid; grid-template-columns:30px 30px; gap:3px; width:63px}
 .ops button{width:30px; height:30px; border-radius:9px; border:2px solid var(--line); background:#fff; font-size:13px}
 .ops button:disabled{opacity:.3}
+.ops button.au{opacity:.35;filter:grayscale(1)}.ops button.au.on{opacity:1;filter:none;background:#efe8ff;border-color:#b9a3f0}
 .ic{display:inline-grid; place-items:center; width:1.25em; height:1.25em; line-height:1; font-size:1em; vertical-align:-.2em}
 .ic svg{width:100%; height:100%}
 .kindcell{display:flex; align-items:center; gap:6px; min-width:0}
@@ -225,6 +226,7 @@ html.b1 #print, html.b2 #print{color:#111}
 #stg .sub1{font-size:4.2vh;color:#f6e3c0;margin-top:2vh;font-family:'Gowun Dodum',sans-serif;font-weight:700;letter-spacing:.15em}
 #stg .sbar{position:absolute;right:1.5vw;bottom:1.5vh;display:flex;gap:.6vw;align-items:center;opacity:0;transition:opacity .4s;font-family:'Gowun Dodum',sans-serif}
 #stg.mv .sbar{opacity:1}
+#stg.playing:after{content:'♪ 음악';position:absolute;left:1.5vw;bottom:1.5vh;font-size:2vh;color:#f3cf6b99;font-family:'Gowun Dodum'}
 #stg .sbar button{background:#ffffff22;color:#fff;border:1px solid #ffffff44;border-radius:99px;padding:.6vh 1.2vw;font-size:1.8vh;cursor:pointer}
 #stg .sbar span{font-size:1.8vh;color:#fff9}
 #stg .dots{display:flex;gap:.6vh;margin-top:3vh}#stg .dots i{width:1.1vh;height:1.1vh;border-radius:50%;background:#ffffff33}#stg .dots i.on{background:#f3cf6b}#stg .dots i.dn{background:#f3cf6b88}
@@ -324,7 +326,7 @@ html.hasbold #big td{font-weight:700}
 <div id="stg" hidden>
   <div class="cl"></div><div class="cr"></div><div class="vl"></div><div class="spot"></div>
   <div id="stgC"></div>
-  <div class="sbar"><span id="stgP"></span><button data-s="-1">◀ 이전</button><button data-s="1">다음 ▶</button><button data-s="x">✕ 닫기</button></div>
+  <div class="sbar"><span id="stgP"></span><button id="stgAuB" data-s="au">🎵 음원 재생 (Enter)</button><button data-s="-1">◀ 이전</button><button data-s="1">다음 ▶</button><button data-s="x">✕ 닫기</button></div>
 </div>
 <div id="print"></div>
 <div class="toast" id="toast"></div>
@@ -417,7 +419,7 @@ function drawRows(){
       <td><div class="tm"><input class="t" data-a="m" value="${esc(a.m)}" inputmode="numeric" placeholder="0"><span>분</span>
         <input class="t" data-a="s" value="${esc(a.s)}" inputmode="numeric" placeholder="0"><span>초</span></div><div class="mc" title="이 공연 앞 소개 멘트 (비우면 위에 정한 시간)">🎤 소개 <input class="t" data-a="im" value="${esc(a.im??'')}" inputmode="numeric" placeholder="${i===0?0:Math.floor(introDef()/60)}" data-ph="m"><span>분</span><input class="t" data-a="is" value="${esc(a.is??'')}" inputmode="numeric" placeholder="${i===0?0:introDef()%60}" data-ph="s"><span>초</span></div></td>
       <td><textarea class="t" data-a="memo" rows="1" placeholder="예) 음원 USB">${esc(a.memo)}</textarea></td>
-      <td><div class="ops"><button data-up="${i}" ${i===0?'disabled':''} title="위로">▲</button><button data-dn="${i}" ${i===S.acts.length-1?'disabled':''} title="아래로">▼</button><button data-del="${i}" title="지우기">🗑</button></div></td>
+      <td><div class="ops"><button data-up="${i}" ${i===0?'disabled':''} title="위로">▲</button><button data-dn="${i}" ${i===S.acts.length-1?'disabled':''} title="아래로">▼</button><button data-del="${i}" title="지우기">🗑</button><button data-au="${i}" class="au ${AUHAS.has(auKey(a))?'on':''}" title="음원 넣기 · 무대 화면에서 Enter로 재생">🎵</button></div></td>
     </tr>`;
   }).join('');
 }
@@ -756,6 +758,58 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('fullscreenchange',()=>{ if(!$('#big').hidden) setTimeout(fitBig,60); });
 window.addEventListener('resize',()=>{ if(!$('#big').hidden) fitBig(); });
+/* ── 🎵 공연 음원: 기기 저장(IndexedDB) + 온라인 보관(64만 자 조각). 열쇠는 공연 이름이라 다른 기기에서도 이름이 같으면 찾아진다 ── */
+const AUB='https://matchmaker-28187-default-rtdb.asia-southeast1.firebasedatabase.app/today_todo_img/kkumkkiaudio/';
+const auKey=a=>{ let h=5381; for(const c of 'au:'+String(a.name||a.kind||'').replace(/\s+/g,'').toLowerCase()) h=(h*33+c.charCodeAt(0))>>>0; return 'a'+h.toString(36).padStart(7,'0').slice(0,7); };
+let AUHAS=new Set();
+const auDb=new Promise(ok=>{ try{ const r=indexedDB.open('kkumkki_au',1); r.onupgradeneeded=()=>r.result.createObjectStore('au'); r.onsuccess=()=>ok(r.result); r.onerror=()=>ok(null);}catch(e){ ok(null); } });
+async function auIdb(k,v){ const db=await auDb; if(!db) return null; return new Promise(ok=>{ try{ const tx=db.transaction('au',v===undefined?'readonly':'readwrite'), st=tx.objectStore('au'); const r= v===undefined? st.get(k) : v===null? st.delete(k) : st.put(v,k); r.onsuccess=()=>ok(r.result||null); r.onerror=()=>ok(null); }catch(e){ ok(null); } }); }
+async function auScan(){ // 묶음 읽기는 규칙상 막혀 있어서 공연마다 m 하나씩 확인
+  const ks=[...new Set(S.acts.filter(x=>x.name||x.kind).map(auKey))]; await Promise.all(ks.map(async k=>{ try{ const m=await (await fetch(AUB+k+'m.json')).json(); if(m) AUHAS.add(k); }catch(e){} })); document.querySelectorAll('[data-au]').forEach(b=>{ const a=S.acts[+b.dataset.au]; if(a) b.classList.toggle('on',AUHAS.has(auKey(a))); }); }
+const auLoading=new Map();
+async function auGet(a){ const k=auKey(a); const b=await auIdb(k); if(b) return b; if(!AUHAS.has(k)) return null;
+  if(!auLoading.has(k)) auLoading.set(k,(async()=>{ try{ const m=await (await fetch(AUB+k+'m.json')).json(); if(!m) return null; const n=+String(m).split('|')[0]; let u=''; for(let i=0;i<n;i++){ const c=await (await fetch(AUB+k+'p'+i+'.json')).json(); if(typeof c!=='string') return null; u+=c; } const bl=await (await fetch(u)).blob(); auIdb(k,bl); return bl; }catch(e){ return null; } finally{ setTimeout(()=>auLoading.delete(k),100); } })());
+  return auLoading.get(k); }
+async function auPut(a,file){ const k=auKey(a); await auIdb(k,file); AUHAS.add(k); refreshAu(); toast('🎵 음원을 넣었어요 · 온라인에도 보관 중…');
+  try{ const u=await new Promise(ok=>{ const r=new FileReader(); r.onload=()=>ok(r.result); r.readAsDataURL(file); }); const CH=640000, n=Math.ceil(u.length/CH);
+    for(let i=0;i<n;i++){ const r=await fetch(AUB+k+'p'+i+'.json',{method:'PUT',body:JSON.stringify(u.slice(i*CH,(i+1)*CH))}); if(!r.ok) throw 0; }
+    const r=await fetch(AUB+k+'m.json',{method:'PUT',body:JSON.stringify(n+'|'+(file.type||'audio/mpeg')+'|'+(file.name||''))}); if(!r.ok) throw 0; toast('☁️ 음원을 온라인에도 보관했어요');
+  }catch(e){ toast('⚠️ 온라인 보관 실패 · 이 컴퓨터에만 있어요'); } }
+async function auDel(a){ const k=auKey(a); await auIdb(k,null); AUHAS.delete(k); refreshAu(); try{ const m=await (await fetch(AUB+k+'m.json')).json(); const n=m?+String(m).split('|')[0]:0; await fetch(AUB+k+'m.json',{method:'DELETE'}); for(let i=0;i<n;i++) fetch(AUB+k+'p'+i+'.json',{method:'DELETE'}); }catch(e){} toast('음원을 뺐어요'); }
+function refreshAu(){ document.querySelectorAll('[data-au]').forEach(b=>{ const a=S.acts[+b.dataset.au]; if(a) b.classList.toggle('on',AUHAS.has(auKey(a))); }); }
+const auPrev=new Audio();
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-au]'); if(!b) return; e.stopPropagation(); const a=S.acts[+b.dataset.au]; if(!a) return;
+  if(!(a.name||a.kind)){ toast('공연 이름을 먼저 적어 주세요'); return; }
+  const has=AUHAS.has(auKey(a)); const bg=document.createElement('div'); bg.className='fontbg';
+  bg.innerHTML=`<div class="fontsheet"><h2>🎵 「${esc(a.name||a.kind)}」 음원</h2>
+    <p class="hint">${has?'음원이 들어 있어요. 무대 화면에서 이 공연 차례에 <b>Enter</b>(또는 P)를 누르면 재생돼요.':'mp3 같은 소리 파일을 넣으면 무대 화면에서 <b>Enter</b>로 바로 틀 수 있어요. 온라인에도 보관돼서 다른 컴퓨터에서도 그대로예요.'}<br><small>※ 공연 이름이 바뀌면 음원을 다시 넣어야 해요.</small></p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:10px">
+      ${has?'<button class="btn small" data-pv>▶ 미리 듣기</button><button class="btn small" data-rm>🗑 빼기</button>':''}
+      <label class="btn small primary">${has?'🔁 바꾸기':'📂 파일 고르기'}<input type="file" accept="audio/*,.mp3,.m4a,.wav" hidden></label>
+      <button class="btn small" data-close>닫기</button></div></div>`;
+  document.body.appendChild(bg);
+  const close=()=>{ auPrev.pause(); bg.remove(); };
+  bg.querySelector('input').onchange=async ev=>{ const f=ev.target.files[0]; if(!f) return; close(); await auPut(a,f); };
+  bg.addEventListener('click',async ev=>{
+    if(ev.target.closest('[data-pv]')){ const btn=ev.target.closest('[data-pv]'); if(!auPrev.paused){ auPrev.pause(); btn.textContent='▶ 미리 듣기'; return; } btn.textContent='⏳ 받는 중…'; const bl=await auGet(a); if(!bl){ btn.textContent='❌ 못 찾음'; return; } auPrev.src=URL.createObjectURL(bl); auPrev.play(); btn.textContent='⏸ 멈춤'; return; }
+    if(ev.target.closest('[data-rm]')){ if(confirm('음원을 뺄까요?')){ close(); auDel(a); } return; }
+    if(ev.target===bg || ev.target.closest('[data-close]')) close();
+  });
+},true);
+auScan();
+/* 무대 화면 음원 재생 */
+const stgAu=new Audio(); let stgAuFor=null;
+function stgAuStop(){ if(stgAu.paused){ stgAuFor=null; return; } const a0=stgAu, v0=a0.volume; let k=0; const t=setInterval(()=>{ k++; a0.volume=Math.max(0,v0*(1-k/10)); if(k>=10){ clearInterval(t); a0.pause(); a0.volume=1; } },60); stgAuFor=null; stgAuUi(); }
+async function stgAuToggle(){ const s=stgSlides()[stgI]; if(!s||s.t!=='act') return; const a=s.a;
+  if(stgAuFor===a && !stgAu.paused){ stgAu.pause(); stgAuUi(); return; }
+  if(stgAuFor===a && stgAu.paused && stgAu.src){ stgAu.play(); stgAuUi(); return; }
+  if(!AUHAS.has(auKey(a))){ toast('이 공연은 음원이 없어요 (정리표 🎵 버튼으로 넣기)'); return; }
+  toast('🎵 음원 준비 중…'); const bl=await auGet(a); if(!bl){ toast('음원을 못 찾았어요'); return; }
+  if(stgSlides()[stgI]?.a!==a) return; stgAu.src=URL.createObjectURL(bl); stgAu.volume=1; stgAuFor=a; stgAu.play().catch(()=>{}); stgAuUi(); }
+function stgAuUi(){ const b=$('#stgAuB'); if(!b) return; const s=stgSlides()[stgI]; const has=s&&s.t==='act'&&AUHAS.has(auKey(s.a));
+  b.style.display=has?'':'none'; b.textContent= stgAuFor&&!stgAu.paused? '⏸ 음원 멈춤 (Enter)' : '🎵 음원 재생 (Enter)';
+  $('#stg').classList.toggle('playing',!!stgAuFor&&!stgAu.paused); }
+stgAu.addEventListener('ended',()=>{ stgAuFor=null; stgAuUi(); });
 /* ── 🎬 무대 화면: 표지 → 시작 인사 → 무대마다 한 장 → 마무리 인사 → 감사 ── */
 let stgI=0, stgMv=0;
 function stgSlides(){ const acts=bigActs(); const L=[{t:'cover'}]; if(openT()||true) L.push({t:'open'}); acts.forEach((a,k)=>L.push({t:'act',a,k,n:acts.length,next:acts[k+1]})); L.push({t:'close'}); L.push({t:'end'}); return L; }
@@ -777,22 +831,24 @@ function stgDraw(){
   // 글씨가 넘치지 않게: 제목·이름 크기 맞추기
   const tt=c.querySelector('.tt'); if(tt){ let f=11; tt.style.setProperty('--tf',f+'vh'); while(f>4 && (tt.scrollWidth>tt.clientWidth+2 || c.scrollHeight>c.clientHeight+2)){ f-=.5; tt.style.setProperty('--tf',f+'vh'); } }
   const ws=c.querySelector('.ws'); if(ws){ let f=5; ws.style.setProperty('--wf',f+'vh'); while(f>2.4 && c.scrollHeight>c.clientHeight+2){ f-=.3; ws.style.setProperty('--wf',f+'vh'); } }
-  $('#stgP').textContent=`${stgI+1} / ${L.length}`;
+  $('#stgP').textContent=`${stgI+1} / ${L.length}`; stgAuUi();
+  if(s.t==='act'){ [s.a,s.next].forEach(x=>{ if(x&&AUHAS.has(auKey(x))) auGet(x); }); } // 미리 받아 두기
   if(s.t==='end'||(s.t==='act'&&/합창|격파/.test(s.a.kind+s.a.name))) stgFx(s.t==='end'?['💐','🌸','✨','💖']:['✨','⭐','🎉']);
 }
 function stgFx(E){ const fx=document.createElement('div'); fx.className='fx'; for(let i=0;i<34;i++){ const e=document.createElement('i'); e.textContent=E[i%E.length]; e.style.left=Math.random()*100+'vw'; e.style.animationDuration=(4+Math.random()*4)+'s'; e.style.animationDelay=Math.random()*2+'s'; fx.appendChild(e); } $('#stg').appendChild(fx); setTimeout(()=>fx.remove(),11000); }
 function openStg(){ closePal(); if(!document.getElementById('stgFont')){ const l=document.createElement('link'); l.id='stgFont'; l.rel='stylesheet'; l.href='https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap'; document.head.appendChild(l); }
   stgI=0; $('#stg').hidden=false; stgDraw(); document.fonts&&document.fonts.ready.then(stgDraw);
   const de=document.documentElement; if(de.requestFullscreen && !document.fullscreenElement) de.requestFullscreen().catch(()=>{}); }
-function closeStg(){ $('#stg').hidden=true; if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
-function stgStep(d){ stgI+=d; stgDraw(); }
+function closeStg(){ stgAuStop(); $('#stg').hidden=true; if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
+function stgStep(d){ stgAuStop(); stgI+=d; stgDraw(); }
 $('#btnStg').onclick=openStg;
-$('#stg').addEventListener('click',e=>{ const b=e.target.closest('[data-s]'); if(b){ e.stopPropagation(); const v=b.dataset.s; if(v==='x') closeStg(); else stgStep(+v); return; } stgStep(1); });
+$('#stg').addEventListener('click',e=>{ const b=e.target.closest('[data-s]'); if(b){ e.stopPropagation(); const v=b.dataset.s; if(v==='x') closeStg(); else if(v==='au') stgAuToggle(); else stgStep(+v); return; } stgStep(1); });
 $('#stg').addEventListener('mousemove',()=>{ $('#stg').classList.add('mv'); clearTimeout(stgMv); stgMv=setTimeout(()=>$('#stg').classList.remove('mv'),2500); });
 document.addEventListener('keydown',e=>{
   if($('#stg').hidden) return;
   if(e.key==='Escape'){ closeStg(); return; }
-  if(['ArrowRight','ArrowDown','PageDown',' ','Enter'].includes(e.key)){ e.preventDefault(); stgStep(1); }
+  if(e.key==='Enter'||e.key==='p'||e.key==='P'||e.key==='ㅔ'){ e.preventDefault(); stgAuToggle(); return; }
+  if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){ e.preventDefault(); stgStep(1); }
   if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)){ e.preventDefault(); stgStep(-1); }
   if(e.key==='Home'){ stgI=0; stgDraw(); }
 });
