@@ -226,7 +226,7 @@ html.b1 #print, html.b2 #print{color:#111}
 #stg .sub1{font-size:4.2vh;color:#f6e3c0;margin-top:2vh;font-family:'Gowun Dodum',sans-serif;font-weight:700;letter-spacing:.15em}
 #stg .sbar{position:absolute;right:1.5vw;bottom:1.5vh;display:flex;gap:.6vw;align-items:center;opacity:0;transition:opacity .4s;font-family:'Gowun Dodum',sans-serif}
 #stg.mv .sbar{opacity:1}
-#stgV{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.vid #stgV{display:block}#stgP{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.pic #stgP{display:block}#stg .sbar{z-index:3}
+#stgV{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.vid #stgV{display:block}#stgP{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.pic #stgP{display:block}#stgK{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;display:none;z-index:2}#stg.rk #stgK{display:block}#stgKx{position:absolute;right:1.5vw;top:1.5vh;z-index:4;display:none;border:0;border-radius:99px;padding:.5em 1.1em;font:inherit;font-size:max(14px,1.6vh);background:rgba(0,0,0,.35);color:#fff;opacity:.55;cursor:pointer}#stgKx:hover{opacity:1}#stg.rk #stgKx{display:block}#stg .sbar{z-index:3}
 #stg.playing:after{content:'♪ 음악';position:absolute;left:1.5vw;bottom:1.5vh;font-size:2vh;color:#f3cf6b99;font-family:'Gowun Dodum'}
 #stg .sbar button{background:#ffffff22;color:#fff;border:1px solid #ffffff44;border-radius:99px;padding:.6vh 1.2vw;font-size:1.8vh;cursor:pointer}
 #stg .sbar span{font-size:1.8vh;color:#fff9}
@@ -329,6 +329,8 @@ html.hasbold #big td{font-weight:700}
   <div id="stgC"></div>
   <video id="stgV" playsinline></video>
   <img id="stgP" alt="">
+  <iframe id="stgK" title="리코더 노래방" allow="autoplay"></iframe>
+  <button id="stgKx" data-s="rk">✕ 리코더 닫기 (Enter)</button>
   <div class="sbar"><span id="stgP"></span><button id="stgAuB" data-s="au">🎵 음원 재생 (Enter)</button><button data-s="-1">◀ 이전</button><button data-s="1">다음 ▶</button><button data-s="x">✕ 닫기</button></div>
 </div>
 <div id="print"></div>
@@ -806,14 +808,15 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-au]'); if
 auScan();
 /* 무대 화면 음원 재생 */
 const stgAu=new Audio(); let stgAuFor=null;
-function stgAuStop(){ const v=$('#stgV'); if(v){ v.pause(); v.removeAttribute('src'); $('#stg').classList.remove('vid'); } $('#stg').classList.remove('pic');
+function stgAuStop(){ const v=$('#stgV'); if(v){ v.pause(); v.removeAttribute('src'); $('#stg').classList.remove('vid'); } $('#stg').classList.remove('pic'); rkClose(true);
   if(stgAu.paused){ stgAuFor=null; return; } const a0=stgAu, v0=a0.volume; let k=0; const t=setInterval(()=>{ k++; a0.volume=Math.max(0,v0*(1-k/10)); if(k>=10){ clearInterval(t); a0.pause(); a0.volume=1; } },60); stgAuFor=null; stgAuUi(); }
 async function stgAuToggle(){ const s=stgSlides()[stgI]; if(!s||s.t!=='act') return; const a=s.a;
+  if($('#stg').classList.contains('rk')){ rkClose(); return; }
   if(stgAuFor===a && $('#stg').classList.contains('pic')){ $('#stg').classList.remove('pic'); stgAuFor=null; stgAuUi(); return; }
   if(stgAuFor===a && $('#stg').classList.contains('vid')){ const v=$('#stgV'); if(v.paused) v.play(); else v.pause(); stgAuUi(); return; }
   if(stgAuFor===a && !stgAu.paused){ stgAu.pause(); stgAuUi(); return; }
   if(stgAuFor===a && stgAu.paused && stgAu.src){ stgAu.play(); stgAuUi(); return; }
-  if(!AUHAS.has(auKey(a)) && isRec(a)){ window.open('https://today119.github.io/recorder-karaoke/#show','reckaraoke'); return; }
+  if(!AUHAS.has(auKey(a)) && isRec(a)){ rkOpen(a); return; }
   if(!AUHAS.has(auKey(a))){ toast('이 공연은 음원이 없어요 (정리표 🎵 버튼으로 넣기)'); return; }
   toast('🎵 음원 준비 중…'); const bl=await auGet(a); if(!bl){ toast('음원을 못 찾았어요'); return; }
   if(stgSlides()[stgI]?.a!==a) return;
@@ -823,7 +826,12 @@ async function stgAuToggle(){ const s=stgSlides()[stgI]; if(!s||s.t!=='act') ret
   stgAu.src=URL.createObjectURL(bl); stgAu.volume=1; stgAuFor=a; stgAu.play().catch(()=>{}); stgAuUi(); }
 const stgV=()=>$('#stgV');
 const isRec=a=>/리코더/.test((a.kind||'')+(a.name||''));
+// 리코더 노래방을 무대 화면 안에 띄운다: Enter(노래방 안에서도) = 닫기, 마지막 곡이 끝나면 노래방이 알려 줘서 자동으로 닫힘
+function rkOpen(a){ const f=$('#stgK'); f.onload=()=>{ try{ f.contentWindow.focus(); }catch(e){} }; f.src='https://today119.github.io/recorder-karaoke/#show'; stgAuFor=a; $('#stg').classList.add('rk'); stgAuUi(); }
+function rkClose(quiet){ const st=$('#stg'); if(!st||!st.classList.contains('rk')) return; st.classList.remove('rk'); $('#stgK').src='about:blank'; stgAuFor=null; window.focus(); if(!quiet) stgAuUi(); }
+window.addEventListener('message',e=>{ if(e.data==='rk-close'||e.data==='rk-done') rkClose(); });
 function stgAuUi(){ const b=$('#stgAuB'); if(!b) return; const s=stgSlides()[stgI]; const has=s&&s.t==='act'&&AUHAS.has(auKey(s.a));
+  if($('#stg').classList.contains('rk')){ b.style.display=''; b.textContent='🎼 리코더 닫기 (Enter)'; return; }
   if(s&&s.t==='act'&&!has&&isRec(s.a)){ b.style.display=''; b.textContent='🎼 리코더 공연 화면 열기 (Enter)'; return; }
   if($('#stg').classList.contains('pic')){ b.style.display=''; b.textContent='🖼️ 그림 닫기 (Enter)'; return; }
   b.style.display=has?'':'none'; const vid=$('#stg').classList.contains('vid'), on= vid? !$('#stgV').paused : stgAuFor&&!stgAu.paused; b.textContent= on? '⏸ 멈춤 (Enter)' : vid? '▶ 영상 계속 (Enter)' : s&&s.a&&/그림|작품|사진/.test((s.a.kind||'')+(s.a.name||'')+(s.a.memo||''))? '🖼️ 그림 크게 보기 (Enter)' : '🎵 음원 재생 (Enter)';
@@ -863,7 +871,7 @@ function openStg(){ closePal(); if(!document.getElementById('stgFont')){ const l
 function closeStg(){ stgAuStop(); $('#stg').hidden=true; if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
 function stgStep(d){ stgAuStop(); stgI+=d; stgDraw(); }
 $('#btnStg').onclick=openStg;
-$('#stg').addEventListener('click',e=>{ const b=e.target.closest('[data-s]'); if(b){ e.stopPropagation(); const v=b.dataset.s; if(v==='x') closeStg(); else if(v==='au') stgAuToggle(); else stgStep(+v); return; } if($('#stg').classList.contains('vid')) return; stgStep(1); });
+$('#stg').addEventListener('click',e=>{ const b=e.target.closest('[data-s]'); if(b){ e.stopPropagation(); const v=b.dataset.s; if(v==='x') closeStg(); else if(v==='au') stgAuToggle(); else if(v==='rk') rkClose(); else stgStep(+v); return; } if($('#stg').classList.contains('vid')) return; stgStep(1); });
 $('#stg').addEventListener('mousemove',()=>{ $('#stg').classList.add('mv'); clearTimeout(stgMv); stgMv=setTimeout(()=>$('#stg').classList.remove('mv'),2500); });
 document.addEventListener('keydown',e=>{
   if($('#stg').hidden) return;
