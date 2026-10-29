@@ -226,7 +226,7 @@ html.b1 #print, html.b2 #print{color:#111}
 #stg .sub1{font-size:4.2vh;color:#f6e3c0;margin-top:2vh;font-family:'Gowun Dodum',sans-serif;font-weight:700;letter-spacing:.15em}
 #stg .sbar{position:absolute;right:1.5vw;bottom:1.5vh;display:flex;gap:.6vw;align-items:center;opacity:0;transition:opacity .4s;font-family:'Gowun Dodum',sans-serif}
 #stg.mv .sbar{opacity:1}
-#stgV{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.vid #stgV{display:block}#stg .sbar{z-index:3}
+#stgV{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.vid #stgV{display:block}#stgP{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.pic #stgP{display:block}#stg .sbar{z-index:3}
 #stg.playing:after{content:'♪ 음악';position:absolute;left:1.5vw;bottom:1.5vh;font-size:2vh;color:#f3cf6b99;font-family:'Gowun Dodum'}
 #stg .sbar button{background:#ffffff22;color:#fff;border:1px solid #ffffff44;border-radius:99px;padding:.6vh 1.2vw;font-size:1.8vh;cursor:pointer}
 #stg .sbar span{font-size:1.8vh;color:#fff9}
@@ -328,6 +328,7 @@ html.hasbold #big td{font-weight:700}
   <div class="cl"></div><div class="cr"></div><div class="vl"></div><div class="spot"></div>
   <div id="stgC"></div>
   <video id="stgV" playsinline></video>
+  <img id="stgP" alt="">
   <div class="sbar"><span id="stgP"></span><button id="stgAuB" data-s="au">🎵 음원 재생 (Enter)</button><button data-s="-1">◀ 이전</button><button data-s="1">다음 ▶</button><button data-s="x">✕ 닫기</button></div>
 </div>
 <div id="print"></div>
@@ -788,10 +789,10 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-au]'); if
   if(!(a.name||a.kind)){ toast('공연 이름을 먼저 적어 주세요'); return; }
   const has=AUHAS.has(auKey(a)); const bg=document.createElement('div'); bg.className='fontbg';
   bg.innerHTML=`<div class="fontsheet"><h2>🎵 「${esc(a.name||a.kind)}」 음원</h2>
-    <p class="hint">${has?'음원이 들어 있어요. 무대 화면에서 이 공연 차례에 <b>Enter</b>(또는 P)를 누르면 재생돼요.':'mp3 같은 소리 파일(또는 mp4 영상)을 넣으면 무대 화면에서 <b>Enter</b>로 바로 틀 수 있어요. 온라인에도 보관돼서 다른 컴퓨터에서도 그대로예요.'}<br><small>※ 공연 이름이 바뀌면 음원을 다시 넣어야 해요.</small></p>
+    <p class="hint">${has?'음원이 들어 있어요. 무대 화면에서 이 공연 차례에 <b>Enter</b>(또는 P)를 누르면 재생돼요.':'mp3 같은 소리 파일(또는 mp4 영상, 그림·사진)을 넣으면 무대 화면에서 <b>Enter</b>로 바로 틀 수 있어요. 온라인에도 보관돼서 다른 컴퓨터에서도 그대로예요.'}<br><small>※ 공연 이름이 바뀌면 음원을 다시 넣어야 해요.</small></p>
     <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:10px">
       ${has?'<button class="btn small" data-pv>▶ 미리 듣기</button><button class="btn small" data-rm>🗑 빼기</button>':''}
-      <label class="btn small primary">${has?'🔁 바꾸기':'📂 파일 고르기'}<input type="file" accept="audio/*,video/*,.mp3,.m4a,.wav,.mp4" hidden></label>
+      <label class="btn small primary">${has?'🔁 바꾸기':'📂 파일 고르기'}<input type="file" accept="audio/*,video/*,image/*,.mp3,.m4a,.wav,.mp4,.jpg,.jpeg,.png" hidden></label>
       <button class="btn small" data-close>닫기</button></div></div>`;
   document.body.appendChild(bg);
   const close=()=>{ auPrev.pause(); bg.remove(); };
@@ -805,9 +806,10 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-au]'); if
 auScan();
 /* 무대 화면 음원 재생 */
 const stgAu=new Audio(); let stgAuFor=null;
-function stgAuStop(){ const v=$('#stgV'); if(v){ v.pause(); v.removeAttribute('src'); $('#stg').classList.remove('vid'); }
+function stgAuStop(){ const v=$('#stgV'); if(v){ v.pause(); v.removeAttribute('src'); $('#stg').classList.remove('vid'); } $('#stg').classList.remove('pic');
   if(stgAu.paused){ stgAuFor=null; return; } const a0=stgAu, v0=a0.volume; let k=0; const t=setInterval(()=>{ k++; a0.volume=Math.max(0,v0*(1-k/10)); if(k>=10){ clearInterval(t); a0.pause(); a0.volume=1; } },60); stgAuFor=null; stgAuUi(); }
 async function stgAuToggle(){ const s=stgSlides()[stgI]; if(!s||s.t!=='act') return; const a=s.a;
+  if(stgAuFor===a && $('#stg').classList.contains('pic')){ $('#stg').classList.remove('pic'); stgAuFor=null; stgAuUi(); return; }
   if(stgAuFor===a && $('#stg').classList.contains('vid')){ const v=$('#stgV'); if(v.paused) v.play(); else v.pause(); stgAuUi(); return; }
   if(stgAuFor===a && !stgAu.paused){ stgAu.pause(); stgAuUi(); return; }
   if(stgAuFor===a && stgAu.paused && stgAu.src){ stgAu.play(); stgAuUi(); return; }
@@ -815,6 +817,7 @@ async function stgAuToggle(){ const s=stgSlides()[stgI]; if(!s||s.t!=='act') ret
   if(!AUHAS.has(auKey(a))){ toast('이 공연은 음원이 없어요 (정리표 🎵 버튼으로 넣기)'); return; }
   toast('🎵 음원 준비 중…'); const bl=await auGet(a); if(!bl){ toast('음원을 못 찾았어요'); return; }
   if(stgSlides()[stgI]?.a!==a) return;
+  if(/^image/.test(bl.type)){ $('#stgP').src=URL.createObjectURL(bl); stgAuFor=a; $('#stg').classList.add('pic'); stgAuUi(); return; }
   const isV=/^video/.test(bl.type); const v=$('#stgV');
   if(isV){ v.src=URL.createObjectURL(bl); stgAuFor=a; $('#stg').classList.add('vid'); v.play().catch(()=>{}); stgAuUi(); return; }
   stgAu.src=URL.createObjectURL(bl); stgAu.volume=1; stgAuFor=a; stgAu.play().catch(()=>{}); stgAuUi(); }
@@ -822,7 +825,8 @@ const stgV=()=>$('#stgV');
 const isRec=a=>/리코더/.test((a.kind||'')+(a.name||''));
 function stgAuUi(){ const b=$('#stgAuB'); if(!b) return; const s=stgSlides()[stgI]; const has=s&&s.t==='act'&&AUHAS.has(auKey(s.a));
   if(s&&s.t==='act'&&!has&&isRec(s.a)){ b.style.display=''; b.textContent='🎼 리코더 공연 화면 열기 (Enter)'; return; }
-  b.style.display=has?'':'none'; const vid=$('#stg').classList.contains('vid'), on= vid? !$('#stgV').paused : stgAuFor&&!stgAu.paused; b.textContent= on? '⏸ 멈춤 (Enter)' : vid? '▶ 영상 계속 (Enter)' : '🎵 음원 재생 (Enter)';
+  if($('#stg').classList.contains('pic')){ b.style.display=''; b.textContent='🖼️ 그림 닫기 (Enter)'; return; }
+  b.style.display=has?'':'none'; const vid=$('#stg').classList.contains('vid'), on= vid? !$('#stgV').paused : stgAuFor&&!stgAu.paused; b.textContent= on? '⏸ 멈춤 (Enter)' : vid? '▶ 영상 계속 (Enter)' : s&&s.a&&/그림|작품|사진/.test((s.a.kind||'')+(s.a.name||'')+(s.a.memo||''))? '🖼️ 그림 크게 보기 (Enter)' : '🎵 음원 재생 (Enter)';
   $('#stg').classList.toggle('playing',!!stgAuFor&&!stgAu.paused); }
 stgAu.addEventListener('ended',()=>{ stgAuFor=null; stgAuUi(); });
 $('#stgV').addEventListener('ended',()=>{ $('#stg').classList.remove('vid'); stgAuFor=null; stgAuUi(); });
