@@ -228,6 +228,8 @@ html.b1 #print, html.b2 #print{color:#111}
 #stg.mv .sbar{opacity:1}
 #stgV{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.vid #stgV{display:block}#stgP{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.pic #stgP{display:block}#stgK{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;display:none;z-index:2}#stg.rk #stgK{display:block}#stgKx{position:absolute;right:1.5vw;top:1.5vh;z-index:4;display:none;border:0;border-radius:99px;padding:.5em 1.1em;font:inherit;font-size:max(14px,1.6vh);background:rgba(0,0,0,.35);color:#fff;opacity:.55;cursor:pointer}#stgKx:hover{opacity:1}#stg.rk #stgKx{display:block}#stg .sbar{z-index:3}
 #stg.playing:after{content:'♪ 음악';position:absolute;left:1.5vw;bottom:1.5vh;font-size:2vh;color:#f3cf6b99;font-family:'Gowun Dodum'}
+#stgVb{display:flex;align-items:center;gap:.4vw}#stgVn{color:#fff;font-size:1.8vh;min-width:3.2em;text-align:center}
+#stgVol{position:absolute;top:3vh;right:3vw;z-index:5;background:#000a;color:#fff;border-radius:2vh;padding:1.4vh 2vw 2.2vh;font:700 3vh 'Gowun Dodum',sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;min-width:22vh}#stgVol.on{opacity:1}#stgVol b{color:#ffd166}#stgVol i{position:absolute;left:2vw;bottom:1vh;height:.7vh;background:#ffd166;border-radius:1vh;max-width:calc(100% - 4vw)}
 #stg .sbar button{background:#ffffff22;color:#fff;border:1px solid #ffffff44;border-radius:99px;padding:.6vh 1.2vw;font-size:1.8vh;cursor:pointer}
 #stg .sbar span{font-size:1.8vh;color:#fff9}
 #stg .dots{display:flex;gap:.6vh;margin-top:3vh}#stg .dots i{width:1.1vh;height:1.1vh;border-radius:50%;background:#ffffff33}#stg .dots i.on{background:#f3cf6b}#stg .dots i.dn{background:#f3cf6b88}
@@ -331,7 +333,7 @@ html.hasbold #big td{font-weight:700}
   <img id="stgP" alt="">
   <iframe id="stgK" title="리코더 노래방" allow="autoplay"></iframe>
   <button id="stgKx" data-s="rk">✕ 리코더 닫기 (Enter)</button>
-  <div class="sbar"><span id="stgP"></span><button id="stgAuB" data-s="au">🎵 음원 재생 (Enter)</button><button data-s="-1">◀ 이전</button><button data-s="1">다음 ▶</button><button data-s="x">✕ 닫기</button></div>
+  <div class="sbar"><span id="stgP"></span><button id="stgAuB" data-s="au">🎵 음원 재생 (Enter)</button><span id="stgVb"><button data-s="v-">🔉 −</button><span id="stgVn">100%</span><button data-s="v+">🔊 ＋</button></span><button data-s="-1">◀ 이전</button><button data-s="1">다음 ▶</button><button data-s="x">✕ 닫기</button></div>
 </div>
 <div id="print"></div>
 <div class="toast" id="toast"></div>
@@ -808,9 +810,19 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-au]'); if
 auScan();
 /* 무대 화면 음원 재생 */
 const stgAu=new Audio(); let stgAuFor=null;
+// 🔊 공연마다 음량(30~200%)을 기억: Web Audio로 키워서 100%보다 크게도, 아이패드에서도 된다 (무대 화면 −/＋ 버튼, -/+ 키)
+let AUX=null; const auNodes=new Map();
+function auCtx(){ if(AUX===null){ try{ AUX=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AUX=false; } } if(AUX&&AUX.state==='suspended') AUX.resume().catch(()=>{}); return AUX; }
+function auGain(el){ const c=auCtx(); if(!c) return null; if(!auNodes.has(el)){ try{ const g=c.createGain(), lim=c.createDynamicsCompressor(); lim.threshold.value=-2; lim.knee.value=2; lim.ratio.value=20; lim.attack.value=.002; lim.release.value=.2; c.createMediaElementSource(el).connect(g).connect(lim).connect(c.destination); auNodes.set(el,g); }catch(e){ auNodes.set(el,null); } } return auNodes.get(el); }
+const volOf=a=>(a&&S.auVol&&S.auVol[auKey(a)])||100;
+function volApply(a){ const v=volOf(a)/100; [stgAu,$('#stgV')].forEach(el=>{ const g=auGain(el); if(g){ g.gain.value=v; el.volume=1; } else el.volume=Math.min(1,v); }); }
+function volStep(d){ const s=stgSlides()[stgI]; if(!s||s.t!=='act') return; const a=s.a, k=auKey(a); S.auVol=S.auVol||{};
+  const v=Math.max(30,Math.min(200,volOf(a)+d)); if(v===100) delete S.auVol[k]; else S.auVol[k]=v; save(); volApply(a);
+  let h=$('#stgVol'); if(!h){ h=document.createElement('div'); h.id='stgVol'; $('#stg').appendChild(h); }
+  h.innerHTML=`${v>100?'🔊':v<100?'🔉':'🔈'} 음량 <b>${v}%</b><i style="width:${v/2}%"></i>`; h.classList.add('on'); clearTimeout(h._t); h._t=setTimeout(()=>h.classList.remove('on'),1600); stgAuUi(); }
 function stgAuStop(){ const v=$('#stgV'); if(v){ v.pause(); v.removeAttribute('src'); $('#stg').classList.remove('vid'); } $('#stg').classList.remove('pic'); rkClose(true);
   if(stgAu.paused){ stgAuFor=null; return; } const a0=stgAu, v0=a0.volume; let k=0; const t=setInterval(()=>{ k++; a0.volume=Math.max(0,v0*(1-k/10)); if(k>=10){ clearInterval(t); a0.pause(); a0.volume=1; } },60); stgAuFor=null; stgAuUi(); }
-async function stgAuToggle(){ const s=stgSlides()[stgI]; if(!s||s.t!=='act') return; const a=s.a;
+async function stgAuToggle(){ const s=stgSlides()[stgI]; if(!s||s.t!=='act') return; const a=s.a; auCtx();
   if($('#stg').classList.contains('rk')){ rkClose(); return; }
   if(stgAuFor===a && $('#stg').classList.contains('pic')){ $('#stg').classList.remove('pic'); stgAuFor=null; stgAuUi(); return; }
   if(stgAuFor===a && $('#stg').classList.contains('vid')){ const v=$('#stgV'); if(v.paused) v.play(); else v.pause(); stgAuUi(); return; }
@@ -822,8 +834,8 @@ async function stgAuToggle(){ const s=stgSlides()[stgI]; if(!s||s.t!=='act') ret
   if(stgSlides()[stgI]?.a!==a) return;
   if(/^image/.test(bl.type)){ $('#stgP').src=URL.createObjectURL(bl); stgAuFor=a; $('#stg').classList.add('pic'); stgAuUi(); return; }
   const isV=/^video/.test(bl.type); const v=$('#stgV');
-  if(isV){ v.src=URL.createObjectURL(bl); stgAuFor=a; $('#stg').classList.add('vid'); v.play().catch(()=>{}); stgAuUi(); return; }
-  stgAu.src=URL.createObjectURL(bl); stgAu.volume=1; stgAuFor=a; stgAu.play().catch(()=>{}); stgAuUi(); }
+  if(isV){ v.src=URL.createObjectURL(bl); volApply(a); stgAuFor=a; $('#stg').classList.add('vid'); v.play().catch(()=>{}); stgAuUi(); return; }
+  stgAu.src=URL.createObjectURL(bl); volApply(a); stgAuFor=a; stgAu.play().catch(()=>{}); stgAuUi(); }
 const stgV=()=>$('#stgV');
 const isRec=a=>/리코더/.test((a.kind||'')+(a.name||''));
 // 리코더 노래방을 무대 화면 안에 띄운다: Enter(노래방 안에서도) = 닫기, 마지막 곡이 끝나면 노래방이 알려 줘서 자동으로 닫힘
@@ -834,6 +846,7 @@ function stgAuUi(){ const b=$('#stgAuB'); if(!b) return; const s=stgSlides()[stg
   if($('#stg').classList.contains('rk')){ b.style.display=''; b.textContent='🎼 리코더 닫기 (Enter)'; return; }
   if(s&&s.t==='act'&&!has&&isRec(s.a)){ b.style.display=''; b.textContent='🎼 리코더 공연 화면 열기 (Enter)'; return; }
   if($('#stg').classList.contains('pic')){ b.style.display=''; b.textContent='🖼️ 그림 닫기 (Enter)'; return; }
+  const vb=$('#stgVb'); if(vb){ vb.style.display=has?'':'none'; $('#stgVn').textContent=volOf(s&&s.a)+'%'; }
   b.style.display=has?'':'none'; const vid=$('#stg').classList.contains('vid'), on= vid? !$('#stgV').paused : stgAuFor&&!stgAu.paused; b.textContent= on? '⏸ 멈춤 (Enter)' : vid? '▶ 영상 계속 (Enter)' : s&&s.a&&/그림|작품|사진/.test((s.a.kind||'')+(s.a.name||'')+(s.a.memo||''))? '🖼️ 그림 크게 보기 (Enter)' : '🎵 음원 재생 (Enter)';
   $('#stg').classList.toggle('playing',!!stgAuFor&&!stgAu.paused); }
 stgAu.addEventListener('ended',()=>{ stgAuFor=null; stgAuUi(); });
@@ -871,7 +884,7 @@ function openStg(){ closePal(); if(!document.getElementById('stgFont')){ const l
 function closeStg(){ stgAuStop(); $('#stg').hidden=true; if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
 function stgStep(d){ stgAuStop(); stgI+=d; stgDraw(); }
 $('#btnStg').onclick=openStg;
-$('#stg').addEventListener('click',e=>{ const b=e.target.closest('[data-s]'); if(b){ e.stopPropagation(); const v=b.dataset.s; if(v==='x') closeStg(); else if(v==='au') stgAuToggle(); else if(v==='rk') rkClose(); else stgStep(+v); return; } if($('#stg').classList.contains('vid')) return; stgStep(1); });
+$('#stg').addEventListener('click',e=>{ const b=e.target.closest('[data-s]'); if(b){ e.stopPropagation(); const v=b.dataset.s; if(v==='x') closeStg(); else if(v==='au') stgAuToggle(); else if(v==='v-') volStep(-10); else if(v==='v+') volStep(10); else if(v==='rk') rkClose(); else stgStep(+v); return; } if($('#stg').classList.contains('vid')) return; stgStep(1); });
 $('#stg').addEventListener('mousemove',()=>{ $('#stg').classList.add('mv'); clearTimeout(stgMv); stgMv=setTimeout(()=>$('#stg').classList.remove('mv'),2500); });
 document.addEventListener('keydown',e=>{
   if($('#stg').hidden) return;
@@ -880,6 +893,7 @@ document.addEventListener('keydown',e=>{
   if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){ e.preventDefault(); stgStep(1); }
   if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)){ e.preventDefault(); stgStep(-1); }
   if(e.key==='Home'){ stgI=0; stgDraw(); }
+  if(['+','=','-','_'].includes(e.key)){ e.preventDefault(); volStep(e.key==='+'||e.key==='='?10:-10); }
 });
 window.addEventListener('resize',()=>{ if(!$('#stg').hidden) stgDraw(); });
 applyFont();
