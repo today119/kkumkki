@@ -380,7 +380,8 @@ function newAct(){ return {id:uid(), name:'', kind:'', who:'', m:'', s:'', memo:
 function blank(){ return {title:'꿈끼 발표회', klass:'', date:'', start:'', gapM:'', gapS:'', openM:'', openS:'', introM:'', introS:'', closeM:'', closeS:'', roster:'', acts:[newAct(),newAct(),newAct()]}; }
 let S=load();
 function load(){ try{ const r=localStorage.getItem(KEY); if(r) return Object.assign(blank(),JSON.parse(r)); }catch(e){} return blank(); }
-function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
+let auScanT=0;
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} clearTimeout(auScanT); auScanT=setTimeout(()=>{ if(typeof auScan==='function') auScan(); },1500); }
 function toast(t){ const el=$('#toast'); el.textContent=t; el.classList.add('on'); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove('on'),1800); }
 
 /* 이름: 쉼표·줄바꿈·가운뎃점·띄어쓰기 여러 칸으로 구분. 같은 공연 안 중복은 한 번만 */
@@ -879,7 +880,7 @@ function stgDraw(){
 function stgFx(E){ const fx=document.createElement('div'); fx.className='fx'; for(let i=0;i<34;i++){ const e=document.createElement('i'); e.textContent=E[i%E.length]; e.style.left=Math.random()*100+'vw'; e.style.animationDuration=(4+Math.random()*4)+'s'; e.style.animationDelay=Math.random()*2+'s'; fx.appendChild(e); } $('#stg').appendChild(fx); setTimeout(()=>fx.remove(),11000); }
 function openStg(){ closePal(); if(!document.getElementById('stgFont')){ const l=document.createElement('link'); l.id='stgFont'; l.rel='stylesheet'; l.href='https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap'; document.head.appendChild(l); }
   stgI=0; $('#stg').hidden=false; stgDraw();
-  (async()=>{ for(const a of bigActs()) if(AUHAS.has(auKey(a))) await auGet(a); })(); // 음원·영상을 미리 다 받아 두기 document.fonts&&document.fonts.ready.then(stgDraw);
+  (async()=>{ await auScan(); stgDraw(); for(const a of bigActs()) if(AUHAS.has(auKey(a))) await auGet(a); })(); // 공연 이름을 바꿨으면 그 이름의 음원을 다시 찾아요 // 음원·영상을 미리 다 받아 두기 document.fonts&&document.fonts.ready.then(stgDraw);
   const de=document.documentElement; if(de.requestFullscreen && !document.fullscreenElement) de.requestFullscreen().catch(()=>{}); }
 function closeStg(){ stgAuStop(); $('#stg').hidden=true; if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
 function stgStep(d){ stgAuStop(); stgI+=d; stgDraw(); }
