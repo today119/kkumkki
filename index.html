@@ -775,12 +775,19 @@ document.addEventListener('fullscreenchange',()=>{ if(!$('#big').hidden) setTime
 window.addEventListener('resize',()=>{ if(!$('#big').hidden) fitBig(); });
 /* ── 🎵 공연 음원: 기기 저장(IndexedDB) + 온라인 보관(64만 자 조각). 열쇠는 공연 이름이라 다른 기기에서도 이름이 같으면 찾아진다 ── */
 const AUB='https://matchmaker-28187-default-rtdb.asia-southeast1.firebasedatabase.app/today_todo_img/kkumkkiaudio/';
-const auKey=a=>{ let h=5381; for(const c of 'au:'+String(a.name||a.kind||'').replace(/\s+/g,'').toLowerCase()) h=(h*33+c.charCodeAt(0))>>>0; return 'a'+h.toString(36).padStart(7,'0').slice(0,7); };
+const auH=t=>{ let h=5381; for(const c of t) h=(h*33+c.charCodeAt(0))>>>0; return 'a'+h.toString(36).padStart(7,'0').slice(0,7); };
+const auKey0=a=>auH('au:'+String(a.name||a.kind||'').replace(/\s+/g,'').toLowerCase());
+// 이름이 같은 공연(퀴즈 타임 3개 등)은 「이름|참가자」 열쇠에 따로 넣어 두면 그걸 먼저 쓴다
+const auKeyW=a=>auH('au:'+String(a.name||a.kind||'').replace(/\s+/g,'').toLowerCase()+'|'+String(a.who||'').replace(/\s+/g,'').toLowerCase());
+let AUW=new Set();
+const auKey=a=>{ const w=auKeyW(a); return AUW.has(w)?w:auKey0(a); };
 let AUHAS=new Set();
 const auDb=new Promise(ok=>{ try{ const r=indexedDB.open('kkumkki_au',1); r.onupgradeneeded=()=>r.result.createObjectStore('au'); r.onsuccess=()=>ok(r.result); r.onerror=()=>ok(null);}catch(e){ ok(null); } });
 async function auIdb(k,v){ const db=await auDb; if(!db) return null; return new Promise(ok=>{ try{ const tx=db.transaction('au',v===undefined?'readonly':'readwrite'), st=tx.objectStore('au'); const r= v===undefined? st.get(k) : v===null? st.delete(k) : st.put(v,k); r.onsuccess=()=>ok(r.result||null); r.onerror=()=>ok(null); }catch(e){ ok(null); } }); }
 async function auScan(){ // 묶음 읽기는 규칙상 막혀 있어서 공연마다 m 하나씩 확인
-  const ks=[...new Set(S.acts.filter(x=>x.name||x.kind).map(auKey))]; await Promise.all(ks.map(async k=>{ try{ const m=await (await fetch(AUB+k+'m.json')).json(); if(m) AUHAS.add(k); }catch(e){} })); document.querySelectorAll('[data-au]').forEach(b=>{ const a=S.acts[+b.dataset.au]; if(a) b.classList.toggle('on',AUHAS.has(auKey(a))); }); }
+  const L=S.acts.filter(x=>x.name||x.kind), ws=[...new Set(L.map(auKeyW))], ks=[...new Set(L.map(auKey0))];
+  await Promise.all(ws.map(async k=>{ try{ const m=await (await fetch(AUB+k+'m.json')).json(); if(m){ AUW.add(k); AUHAS.add(k); } else AUW.delete(k); }catch(e){} }));
+  await Promise.all(ks.map(async k=>{ try{ const m=await (await fetch(AUB+k+'m.json')).json(); if(m) AUHAS.add(k); }catch(e){} })); document.querySelectorAll('[data-au]').forEach(b=>{ const a=S.acts[+b.dataset.au]; if(a) b.classList.toggle('on',AUHAS.has(auKey(a))); }); }
 const auLoading=new Map();
 // 기기 캐시는 {m,b}: 온라인 m(조각수|형식|파일명)이 바뀌면(잘라서 다시 올리면) 새로 받는다
 async function auMeta(k){ try{ const c=new AbortController(); setTimeout(()=>c.abort(),4000); return await (await fetch(AUB+k+'m.json',{signal:c.signal})).json(); }catch(e){ return undefined; } }
