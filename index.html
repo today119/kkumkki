@@ -848,7 +848,7 @@ function stgAuUi(){ const b=$('#stgAuB'); if(!b) return; const s=stgSlides()[stg
   if(s&&s.t==='act'&&!has&&isRec(s.a)){ b.style.display=''; b.textContent='🎼 리코더 공연 화면 열기 (Enter)'; return; }
   if($('#stg').classList.contains('pic')){ b.style.display=''; b.textContent='🖼️ 그림 닫기 (Enter)'; return; }
   const vb=$('#stgVb'); if(vb){ vb.style.display=has?'':'none'; $('#stgVn').textContent=volOf(s&&s.a)+'%'; }
-  b.style.display=has?'':'none'; const vid=$('#stg').classList.contains('vid'), on= vid? !$('#stgV').paused : stgAuFor&&!stgAu.paused; b.textContent= on? '⏸ 멈춤 (Enter)' : vid? '▶ 영상 계속 (Enter)' : s&&s.a&&/그림|작품|사진/.test((s.a.kind||'')+(s.a.name||'')+(s.a.memo||''))? '🖼️ 그림 크게 보기 (Enter)' : '🎵 음원 재생 (Enter)';
+  b.style.display=has?'':'none'; const vid=$('#stg').classList.contains('vid'), on= vid? !$('#stgV').paused : stgAuFor&&!stgAu.paused; b.textContent= on? '⏸ 멈춤 (Enter)' : vid? '▶ 영상 계속 (Enter)' : s&&s.a&&/그림|작품|사진|퀴즈/.test((s.a.kind||'')+(s.a.name||'')+(s.a.memo||''))? '🖼️ 화면 크게 보기 (Enter)' : '🎵 음원 재생 (Enter)';
   $('#stg').classList.toggle('playing',!!stgAuFor&&!stgAu.paused); }
 stgAu.addEventListener('ended',()=>{ stgAuFor=null; stgAuUi(); });
 $('#stgV').addEventListener('ended',()=>{ $('#stg').classList.remove('vid'); stgAuFor=null; stgAuUi(); });
@@ -929,7 +929,7 @@ $('#btnSend').onclick=async()=>{
     const r=await fetch('https://matchmaker-28187-default-rtdb.asia-southeast1.firebasedatabase.app/today_todo_img/kkumkkiprog/'+m[1]+'.json');
     const R=JSON.parse(await r.json()); if(!Array.isArray(R)) throw 0;
     const nk=t=>String(t||'').replace(/\s+/g,'').toLowerCase(); const done=[];
-    R.forEach(x=>{ const a=S.acts.find(a=>nk(a.name)===nk(x.from)); if(!a) return;
+    R.forEach(x=>{ const a=S.acts.find(a=>nk(a.name)===nk(x.from)&&(!x.who||String(a.who||'').includes(x.who))); if(!a) return;
       if(x.name) a.name=x.name; if(x.m!=null) a.m=x.m; if(x.s!=null) a.s=x.s;
       if(x.drop) a.who=String(a.who||'').split(/\s*,\s*/).filter(w=>w&&!x.drop.includes(w)).join(', ');
       done.push(x.from+' → '+(x.name||x.from)); });
