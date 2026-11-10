@@ -226,7 +226,7 @@ html.b1 #print, html.b2 #print{color:#111}
 #stg .sub1{font-size:4.2vh;color:#f6e3c0;margin-top:2vh;font-family:'Gowun Dodum',sans-serif;font-weight:700;letter-spacing:.15em}
 #stg .sbar{position:absolute;right:1.5vw;bottom:1.5vh;display:flex;gap:.6vw;align-items:center;opacity:0;transition:opacity .4s;font-family:'Gowun Dodum',sans-serif}
 #stg.mv .sbar{opacity:1}
-#stgV{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.vid #stgV{display:block}#stgP{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.pic #stgP{display:block}#stgK{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;display:none;z-index:2}#stg.rk #stgK{display:block}#stgKx{position:absolute;right:1.5vw;top:1.5vh;z-index:4;display:none;border:0;border-radius:99px;padding:.5em 1.1em;font:inherit;font-size:max(14px,1.6vh);background:rgba(0,0,0,.35);color:#fff;opacity:.55;cursor:pointer}#stgKx:hover{opacity:1}#stg.rk #stgKx{display:block}#stg .sbar{z-index:3}
+#stgV{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.vid #stgV{display:block}#stgP{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain;display:none;z-index:2}#stg.pic #stgP{display:block}#stgK{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;display:none;z-index:2}#stg.rk #stgK{display:block;opacity:0;transition:opacity .6s}#stg.rk.rkon #stgK{opacity:1}#stgKx{position:absolute;right:1.5vw;top:1.5vh;z-index:4;display:none;border:0;border-radius:99px;padding:.5em 1.1em;font:inherit;font-size:max(14px,1.6vh);background:rgba(0,0,0,.35);color:#fff;opacity:.55;cursor:pointer}#stgKx:hover{opacity:1}#stg.rk #stgKx{display:block}#stg .sbar{z-index:3}
 #stgQ{position:absolute;inset:0;z-index:2;display:none;flex-direction:column;align-items:center;justify-content:center;gap:3vh;background:radial-gradient(circle at 50% 30%,#3a2f6b,#1b1730);color:#fff;font-family:Jua,sans-serif;text-align:center;padding:4vh 5vw;cursor:pointer}#stg.quiz #stgQ{display:flex}
 #stgQ .qh{display:flex;gap:1.2vw;align-items:center;font-size:3.6vh}#stgQ .qn{background:#ffcd3c;color:#2b2d6e;border-radius:99px;padding:.2em .9em}#stgQ .qk{color:#ffd98a}
 #stgQ .qq{font-size:8.5vh;line-height:1.25;word-break:keep-all;max-width:90vw}#stgQ .qq.big{font-size:17vh;letter-spacing:.12em;color:#fff6d5}
@@ -865,9 +865,10 @@ function qClose(quiet){ const st=$('#stg'); if(!st||!st.classList.contains('quiz
 document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('#stgQ')) qStep(1); });
 const isRec=a=>/리코더/.test((a.kind||'')+(a.name||''));
 // 리코더 노래방을 무대 화면 안에 띄운다: Enter(노래방 안에서도) = 닫기, 마지막 곡이 끝나면 노래방이 알려 줘서 자동으로 닫힘
-function rkOpen(a){ const f=$('#stgK'); f.onload=()=>{ try{ f.contentWindow.focus(); }catch(e){} }; f.src='https://today119.github.io/recorder-karaoke/#show'; stgAuFor=a; $('#stg').classList.add('rk'); stgAuUi(); }
-function rkClose(quiet){ const st=$('#stg'); if(!st||!st.classList.contains('rk')) return; st.classList.remove('rk'); $('#stgK').src='about:blank'; stgAuFor=null; window.focus(); if(!quiet) stgAuUi(); }
-window.addEventListener('message',e=>{ if(e.data==='rk-close'||e.data==='rk-done') rkClose(); });
+let rkT=0;
+function rkOpen(a){ const f=$('#stgK'); f.onload=()=>{ try{ f.contentWindow.focus(); }catch(e){} }; $('#stg').classList.remove('rkon'); clearTimeout(rkT); rkT=setTimeout(()=>$('#stg').classList.add('rkon'),5000); f.src='https://today119.github.io/recorder-karaoke/#show'; stgAuFor=a; $('#stg').classList.add('rk'); stgAuUi(); }
+function rkClose(quiet){ const st=$('#stg'); if(!st||!st.classList.contains('rk')) return; st.classList.remove('rk','rkon'); clearTimeout(rkT); $('#stgK').src='about:blank'; stgAuFor=null; window.focus(); if(!quiet) stgAuUi(); }
+window.addEventListener('message',e=>{ if(e.data==='rk-ready'){ clearTimeout(rkT); $('#stg').classList.add('rkon'); } if(e.data==='rk-close'||e.data==='rk-done') rkClose(); });
 function stgAuUi(){ const b=$('#stgAuB'); if(!b) return; const s=stgSlides()[stgI]; const has=s&&s.t==='act'&&AUHAS.has(auKey(s.a));
   if($('#stg').classList.contains('rk')){ b.style.display=''; b.textContent='🎼 리코더 닫기 (Enter)'; return; }
   if(s&&s.t==='act'&&!has&&isRec(s.a)){ b.style.display=''; b.textContent='🎼 리코더 공연 화면 열기 (Enter)'; return; }
