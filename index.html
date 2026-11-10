@@ -922,6 +922,21 @@ $('#btnSend').onclick=async()=>{
     if(e.target===bg || e.target.closest('[data-close]')) bg.remove();
   });
 };
+/* 고치기 링크: #fix=코드 → 온라인 규칙 [{from,name,m,s,drop:[이름]}] 대로 이 기기 정리표의 공연을 고친다 (이름으로 찾음) */
+(async()=>{
+  const m=location.hash.match(/fix=([a-z0-9]{4,20})/i); if(!m) return;
+  try{
+    const r=await fetch('https://matchmaker-28187-default-rtdb.asia-southeast1.firebasedatabase.app/today_todo_img/kkumkkiprog/'+m[1]+'.json');
+    const R=JSON.parse(await r.json()); if(!Array.isArray(R)) throw 0;
+    const nk=t=>String(t||'').replace(/\s+/g,'').toLowerCase(); const done=[];
+    R.forEach(x=>{ const a=S.acts.find(a=>nk(a.name)===nk(x.from)); if(!a) return;
+      if(x.name) a.name=x.name; if(x.m!=null) a.m=x.m; if(x.s!=null) a.s=x.s;
+      if(x.drop) a.who=String(a.who||'').split(/\s*,\s*/).filter(w=>w&&!x.drop.includes(w)).join(', ');
+      done.push(x.from+' → '+(x.name||x.from)); });
+    save(); history.replaceState(null,'',location.pathname); render();
+    toast(done.length?'✅ 고쳤어요: '+done.join(' / '):'이미 고쳐져 있어요');
+  }catch(e){ toast('고치기 링크를 열지 못했어요'); }
+})();
 /* 불러오기 링크: #load=코드 → 온라인에 담아 둔 정리표로 채운다 (다른 기기에서 이어서 고치기) */
 (async()=>{
   const m=location.hash.match(/load=([a-z0-9]{4,20})/i); if(!m) return;
