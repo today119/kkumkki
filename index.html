@@ -825,11 +825,11 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-au]'); if
 auScan();
 /* 무대 화면 음원 재생 */
 const stgAu=new Audio(); let stgAuFor=null;
-// 🎤 시작 인사 배경음악(캐논, 직접 만든 곡): 그 장면에서만 아주 작게 서서히 깔리고, 넘기면 서서히 꺼짐. Enter = 끄기/켜기, 🔉🔊 = 음량
+// 🎤 시작·마무리 인사·끝 화면 배경음악(캐논, 직접 만든 곡): 그 장면에서만 아주 작게 서서히 깔리고, 넘기면 서서히 꺼짐. Enter = 끄기/켜기, 🔉🔊 = 음량
 const bgm=new Audio('bgm_open.mp3?v=1'); bgm.loop=true; bgm.preload='auto'; let bgmT=0, bgmOff=false;
-const bgmVol=()=>S.bgmVol??12;
+const bgmVol=()=>S.bgmVol??12; const bgOn=s=>s&&/^(open|close|end)$/.test(s.t);
 function bgmFade(to,ms,done){ clearInterval(bgmT); const v0=bgm.volume,t0=performance.now(); bgmT=setInterval(()=>{ const r=Math.min(1,(performance.now()-t0)/ms); bgm.volume=Math.max(0,Math.min(1,v0+(to-v0)*r)); if(r>=1){ clearInterval(bgmT); if(done) done(); } },50); }
-function bgmSync(){ const s=stgSlides()[stgI], want=!$('#stg').hidden&&s&&s.t==='open'&&!bgmOff;
+function bgmSync(){ const s=stgSlides()[stgI], want=!$('#stg').hidden&&bgOn(s)&&!bgmOff;
   if(want){ if(bgm.paused){ bgm.volume=0; bgm.play().catch(()=>{}); } bgmFade(bgmVol()/100,2500); }
   else if(!bgm.paused) bgmFade(0,1500,()=>bgm.pause()); }
 // 🔊 공연마다 음량(30~200%)을 기억: Web Audio로 키워서 100%보다 크게도, 아이패드에서도 된다 (무대 화면 −/＋ 버튼, -/+ 키)
@@ -838,13 +838,13 @@ function auCtx(){ if(AUX===null){ try{ AUX=new (window.AudioContext||window.webk
 function auGain(el){ const c=auCtx(); if(!c) return null; if(!auNodes.has(el)){ try{ const g=c.createGain(), lim=c.createDynamicsCompressor(); lim.threshold.value=-2; lim.knee.value=2; lim.ratio.value=20; lim.attack.value=.002; lim.release.value=.2; c.createMediaElementSource(el).connect(g).connect(lim).connect(c.destination); auNodes.set(el,g); }catch(e){ auNodes.set(el,null); } } return auNodes.get(el); }
 const volOf=a=>(a&&S.auVol&&S.auVol[auKey(a)])||100;
 function volApply(a){ const v=volOf(a)/100; [stgAu,$('#stgV')].forEach(el=>{ const g=auGain(el); if(g){ g.gain.value=v; el.volume=1; } else el.volume=Math.min(1,v); }); }
-function volStep(d){ const s=stgSlides()[stgI]; if(s&&s.t==='open'){ S.bgmVol=Math.max(2,Math.min(40,bgmVol()+(d>0?2:-2))); save(); if(!bgm.paused) bgmFade(S.bgmVol/100,300); const h0=$('#stgVol')||Object.assign(document.createElement('div'),{id:'stgVol'}); $('#stg').appendChild(h0); h0.innerHTML=`🎵 배경음악 <b>${S.bgmVol}%</b><i style="width:${S.bgmVol*2.5}%"></i>`; h0.classList.add('on'); clearTimeout(h0._t); h0._t=setTimeout(()=>h0.classList.remove('on'),1600); stgAuUi(); return; } if(!s||s.t!=='act') return; const a=s.a, k=auKey(a); S.auVol=S.auVol||{};
+function volStep(d){ const s=stgSlides()[stgI]; if(bgOn(s)){ S.bgmVol=Math.max(2,Math.min(40,bgmVol()+(d>0?2:-2))); save(); if(!bgm.paused) bgmFade(S.bgmVol/100,300); const h0=$('#stgVol')||Object.assign(document.createElement('div'),{id:'stgVol'}); $('#stg').appendChild(h0); h0.innerHTML=`🎵 배경음악 <b>${S.bgmVol}%</b><i style="width:${S.bgmVol*2.5}%"></i>`; h0.classList.add('on'); clearTimeout(h0._t); h0._t=setTimeout(()=>h0.classList.remove('on'),1600); stgAuUi(); return; } if(!s||s.t!=='act') return; const a=s.a, k=auKey(a); S.auVol=S.auVol||{};
   const v=Math.max(30,Math.min(200,volOf(a)+d)); if(v===100) delete S.auVol[k]; else S.auVol[k]=v; save(); volApply(a);
   let h=$('#stgVol'); if(!h){ h=document.createElement('div'); h.id='stgVol'; $('#stg').appendChild(h); }
   h.innerHTML=`${v>100?'🔊':v<100?'🔉':'🔈'} 음량 <b>${v}%</b><i style="width:${v/2}%"></i>`; h.classList.add('on'); clearTimeout(h._t); h._t=setTimeout(()=>h.classList.remove('on'),1600); stgAuUi(); }
 function stgAuStop(){ qClose(true); const v=$('#stgV'); if(v){ v.pause(); v.removeAttribute('src'); $('#stg').classList.remove('vid'); } $('#stg').classList.remove('pic'); rkClose(true);
   if(stgAu.paused){ stgAuFor=null; return; } const a0=stgAu, v0=a0.volume; let k=0; const t=setInterval(()=>{ k++; a0.volume=Math.max(0,v0*(1-k/10)); if(k>=10){ clearInterval(t); a0.pause(); a0.volume=1; } },60); stgAuFor=null; stgAuUi(); }
-async function stgAuToggle(){ const s=stgSlides()[stgI]; if(s&&s.t==='open'){ bgmOff=!bgmOff; bgmSync(); stgAuUi(); return; } if(!s||s.t!=='act') return; const a=s.a; auCtx();
+async function stgAuToggle(){ const s=stgSlides()[stgI]; if(bgOn(s)){ bgmOff=!bgmOff; bgmSync(); stgAuUi(); return; } if(!s||s.t!=='act') return; const a=s.a; auCtx();
   if($('#stg').classList.contains('rk')){ rkClose(); return; }
   if(stgAuFor===a && $('#stg').classList.contains('quiz')){ qClose(); return; }
   if(stgAuFor===a && $('#stg').classList.contains('pic')){ $('#stg').classList.remove('pic'); stgAuFor=null; stgAuUi(); return; }
@@ -866,11 +866,10 @@ let QZ=null,qi=0,qa=false;
 function qDraw(){ const q=QZ&&QZ[qi]; if(!q) return; const el=$('#stgQ');
   el.innerHTML=`<div class="qh"><span class="qn">문제 ${qi+1} / ${QZ.length}</span><span class="qk">${esc(q.e||'🤔')} ${esc(q.k||'퀴즈')}</span></div>
   <div class="qq ${q.big?'big':''}">${esc(q.q).replace(/\n/g,'<br>')}</div><div class="qa ${qa?'':'hide'}">정답: ${esc(q.a)}</div>
-  <div class="qt">${qa?(qi<QZ.length-1?'→ 다음 문제':'마지막 문제예요 · Enter로 닫기'):'→ 정답 보기'}</div>`;  qFit(); }
+  <div class="qt">🖱️ 화면 클릭 · ${qa?(qi<QZ.length-1?'다음 문제 ▶':'퀴즈 끝! 닫기 ▶'):'정답 보기 ▶'}</div>`;  qFit(); }
 function qFit(){ const el=$('#stgQ'),q=el.querySelector('.qq'),a=el.querySelector('.qa'); if(!q) return; const an=a?a.style.animation:''; if(a) a.style.animation='none'; let f=q.classList.contains('big')?22:14; el.style.setProperty('--af',Math.min(12,f*.85)+'vh'); el.style.setProperty('--qf',f+'vh'); while(f>5&&(el.scrollHeight>el.clientHeight+2||q.scrollWidth>q.clientWidth+2)){ f-=.5; el.style.setProperty('--qf',f+'vh'); el.style.setProperty('--af',Math.min(12,f*.85)+'vh'); } if(a){ void a.offsetWidth; a.style.animation=an; } }
-function qStep(d){ if(!QZ) return; if(d>0){ if(!qa) qa=true; else if(qi<QZ.length-1){ qi++; qa=false; } } else { if(qa) qa=false; else if(qi>0){ qi--; qa=true; } } qDraw(); }
+function qStep(d){ if(!QZ) return; if(d>0){ if(!qa) qa=true; else if(qi<QZ.length-1){ qi++; qa=false; } else { qClose(); return; } } else { if(qa) qa=false; else if(qi>0){ qi--; qa=true; } } qDraw(); }
 function qClose(quiet){ const st=$('#stg'); if(!st||!st.classList.contains('quiz')) return; st.classList.remove('quiz'); QZ=null; stgAuFor=null; if(!quiet) stgAuUi(); }
-document.addEventListener('click',e=>{ if(e.target.closest&&e.target.closest('#stgQ')) qStep(1); });
 const isRec=a=>/리코더/.test((a.kind||'')+(a.name||''));
 // 리코더 노래방을 무대 화면 안에 띄운다: Enter(노래방 안에서도) = 닫기, 마지막 곡이 끝나면 노래방이 알려 줘서 자동으로 닫힘
 let rkT=0;
@@ -878,7 +877,7 @@ function rkOpen(a){ const f=$('#stgK'); f.onload=()=>{ try{ f.contentWindow.focu
 function rkClose(quiet){ const st=$('#stg'); if(!st||!st.classList.contains('rk')) return; st.classList.remove('rk','rkon'); clearTimeout(rkT); $('#stgK').src='about:blank'; stgAuFor=null; window.focus(); if(!quiet) stgAuUi(); }
 window.addEventListener('message',e=>{ if(e.data==='rk-ready'){ clearTimeout(rkT); $('#stg').classList.add('rkon'); } if(e.data==='rk-close'||e.data==='rk-done') rkClose(); });
 function stgAuUi(){ const b=$('#stgAuB'); if(!b) return; const s=stgSlides()[stgI];
-  if(s&&s.t==='open'){ b.style.display=''; b.textContent=bgmOff?'🎵 배경음악 켜기 (Enter)':'🔇 배경음악 끄기 (Enter)'; const vb=$('#stgVb'); if(vb){ vb.style.display=''; $('#stgVn').textContent=bgmVol()+'%'; } return; } const has=s&&s.t==='act'&&AUHAS.has(auKey(s.a));
+  if(bgOn(s)){ b.style.display=''; b.textContent=bgmOff?'🎵 배경음악 켜기 (Enter)':'🔇 배경음악 끄기 (Enter)'; const vb=$('#stgVb'); if(vb){ vb.style.display=''; $('#stgVn').textContent=bgmVol()+'%'; } return; } const has=s&&s.t==='act'&&AUHAS.has(auKey(s.a));
   if($('#stg').classList.contains('rk')){ b.style.display=''; b.textContent='🎼 리코더 닫기 (Enter)'; return; }
   if(s&&s.t==='act'&&!has&&isRec(s.a)){ b.style.display=''; b.textContent='🎼 리코더 공연 화면 열기 (Enter)'; return; }
   if($('#stg').classList.contains('pic')){ b.style.display=''; b.textContent='🖼️ 그림 닫기 (Enter)'; return; }
@@ -921,7 +920,7 @@ function openStg(){ closePal(); if(!document.getElementById('stgFont')){ const l
 function closeStg(){ stgAuStop(); $('#stg').hidden=true; bgmSync(); if(document.fullscreenElement) document.exitFullscreen().catch(()=>{}); }
 function stgStep(d){ stgAuStop(); stgI+=d; stgDraw(); }
 $('#btnStg').onclick=openStg;
-$('#stg').addEventListener('click',e=>{ const b=e.target.closest('[data-s]'); if(b){ e.stopPropagation(); const v=b.dataset.s; if(v==='x') closeStg(); else if(v==='au') stgAuToggle(); else if(v==='v-') volStep(-10); else if(v==='v+') volStep(10); else if(v==='rk') rkClose(); else stgStep(+v); return; } if($('#stg').classList.contains('vid')) return; stgStep(1); });
+$('#stg').addEventListener('click',e=>{ const b=e.target.closest('[data-s]'); if(b){ e.stopPropagation(); const v=b.dataset.s; if(v==='x') closeStg(); else if(v==='au') stgAuToggle(); else if(v==='v-') volStep(-10); else if(v==='v+') volStep(10); else if(v==='rk') rkClose(); else if($('#stg').classList.contains('quiz')) qStep(+v); else stgStep(+v); return; } const st=$('#stg'); if(st.classList.contains('vid')) return; if(st.classList.contains('pic')){ st.classList.remove('pic'); stgAuFor=null; stgAuUi(); return; } if(st.classList.contains('quiz')){ qStep(1); return; } stgStep(1); }); // 그림을 크게 본 뒤 누르면 지금 무대로 돌아옴(다음 무대로 안 넘어감)
 $('#stg').addEventListener('mousemove',()=>{ $('#stg').classList.add('mv'); clearTimeout(stgMv); stgMv=setTimeout(()=>$('#stg').classList.remove('mv'),2500); });
 document.addEventListener('keydown',e=>{
   if($('#stg').hidden) return;
