@@ -838,13 +838,13 @@ function auCtx(){ if(AUX===null){ try{ AUX=new (window.AudioContext||window.webk
 function auGain(el){ const c=auCtx(); if(!c) return null; if(!auNodes.has(el)){ try{ const g=c.createGain(), lim=c.createDynamicsCompressor(); lim.threshold.value=-2; lim.knee.value=2; lim.ratio.value=20; lim.attack.value=.002; lim.release.value=.2; c.createMediaElementSource(el).connect(g).connect(lim).connect(c.destination); auNodes.set(el,g); }catch(e){ auNodes.set(el,null); } } return auNodes.get(el); }
 const volOf=a=>(a&&S.auVol&&S.auVol[auKey(a)])||100;
 function volApply(a){ const v=volOf(a)/100; [stgAu,$('#stgV')].forEach(el=>{ const g=auGain(el); if(g){ g.gain.value=v; el.volume=1; } else el.volume=Math.min(1,v); }); }
-function volStep(d){ const s=stgSlides()[stgI]; if(bgOn(s)){ S.bgmVol=Math.max(2,Math.min(40,bgmVol()+(d>0?2:-2))); save(); if(!bgm.paused) bgmFade(S.bgmVol/100,300); const h0=$('#stgVol')||Object.assign(document.createElement('div'),{id:'stgVol'}); $('#stg').appendChild(h0); h0.innerHTML=`🎵 배경음악 <b>${S.bgmVol}%</b><i style="width:${S.bgmVol*2.5}%"></i>`; h0.classList.add('on'); clearTimeout(h0._t); h0._t=setTimeout(()=>h0.classList.remove('on'),1600); stgAuUi(); return; } if(!s||s.t!=='act') return; const a=s.a, k=auKey(a); S.auVol=S.auVol||{};
+function volStep(d){ const s=stgSlides()[stgI]; if(bgOn(s)){ S.bgmVol=Math.max(2,Math.min(40,bgmVol()+(d>0?2:-2))); save(); if(!bgm.paused) bgmFade(S.bgmVol/100,300); const h0=$('#stgVol')||Object.assign(document.createElement('div'),{id:'stgVol'}); $('#stg').appendChild(h0); h0.innerHTML=`🎵 배경음악 <b>${S.bgmVol}%</b><i style="width:${S.bgmVol*2.5}%"></i>`; h0.classList.add('on'); clearTimeout(h0._t); h0._t=setTimeout(()=>h0.classList.remove('on'),1600); stgAuUi(); return; } if(!s||!/^(act|mv)$/.test(s.t)) return; const a=s.a, k=auKey(a); S.auVol=S.auVol||{};
   const v=Math.max(30,Math.min(200,volOf(a)+d)); if(v===100) delete S.auVol[k]; else S.auVol[k]=v; save(); volApply(a);
   let h=$('#stgVol'); if(!h){ h=document.createElement('div'); h.id='stgVol'; $('#stg').appendChild(h); }
   h.innerHTML=`${v>100?'🔊':v<100?'🔉':'🔈'} 음량 <b>${v}%</b><i style="width:${v/2}%"></i>`; h.classList.add('on'); clearTimeout(h._t); h._t=setTimeout(()=>h.classList.remove('on'),1600); stgAuUi(); }
 function stgAuStop(){ qClose(true); const v=$('#stgV'); if(v){ v.pause(); v.removeAttribute('src'); $('#stg').classList.remove('vid'); } $('#stg').classList.remove('pic'); rkClose(true);
   if(stgAu.paused){ stgAuFor=null; return; } const a0=stgAu, v0=a0.volume; let k=0; const t=setInterval(()=>{ k++; a0.volume=Math.max(0,v0*(1-k/10)); if(k>=10){ clearInterval(t); a0.pause(); a0.volume=1; } },60); stgAuFor=null; stgAuUi(); }
-async function stgAuToggle(){ const s=stgSlides()[stgI]; if(bgOn(s)){ bgmOff=!bgmOff; bgmSync(); stgAuUi(); return; } if(!s||s.t!=='act') return; const a=s.a; auCtx();
+async function stgAuToggle(){ const s=stgSlides()[stgI]; if(bgOn(s)){ bgmOff=!bgmOff; bgmSync(); stgAuUi(); return; } if(!s||!/^(act|mv)$/.test(s.t)) return; const a=s.a; auCtx();
   if($('#stg').classList.contains('rk')){ rkClose(); return; }
   if(stgAuFor===a && $('#stg').classList.contains('quiz')){ qClose(); return; }
   if(stgAuFor===a && $('#stg').classList.contains('pic')){ $('#stg').classList.remove('pic'); stgAuFor=null; stgAuUi(); return; }
@@ -858,7 +858,7 @@ async function stgAuToggle(){ const s=stgSlides()[stgI]; if(bgOn(s)){ bgmOff=!bg
   if(/json/.test(bl.type)){ try{ QZ=JSON.parse(await bl.text()); }catch(e){ toast('퀴즈 파일을 못 읽었어요'); return; } qi=0; qa=false; stgAuFor=a; $('#stg').classList.add('quiz'); qDraw(); stgAuUi(); return; }
   if(/^image/.test(bl.type)){ $('#stgP').src=URL.createObjectURL(bl); stgAuFor=a; $('#stg').classList.add('pic'); stgAuUi(); return; }
   const isV=/^video/.test(bl.type); const v=$('#stgV');
-  if(isV){ v.src=URL.createObjectURL(bl); volApply(a); stgAuFor=a; $('#stg').classList.add('vid'); v.play().catch(()=>{}); stgAuUi(); return; }
+  if(isV){ v.loop=s.t==='mv'; v.src=URL.createObjectURL(bl); volApply(a); stgAuFor=a; $('#stg').classList.add('vid'); v.play().catch(()=>{}); stgAuUi(); return; }
   stgAu.src=URL.createObjectURL(bl); volApply(a); stgAuFor=a; stgAu.play().catch(()=>{}); stgAuUi(); }
 const stgV=()=>$('#stgV');
 /* ❓ 퀴즈: 음원 자리에 JSON [{k:종류,e:이모지,q:문제,a:정답,big:초성처럼 크게}] 을 넣으면 Enter로 한 문제씩, →/스페이스/클릭 = 정답 보기 → 다음 문제 */
@@ -877,7 +877,7 @@ function rkOpen(a){ const f=$('#stgK'); f.onload=()=>{ try{ f.contentWindow.focu
 function rkClose(quiet){ const st=$('#stg'); if(!st||!st.classList.contains('rk')) return; st.classList.remove('rk','rkon'); clearTimeout(rkT); $('#stgK').src='about:blank'; stgAuFor=null; window.focus(); if(!quiet) stgAuUi(); }
 window.addEventListener('message',e=>{ if(e.data==='rk-ready'){ clearTimeout(rkT); $('#stg').classList.add('rkon'); } if(e.data==='rk-close'||e.data==='rk-done') rkClose(); });
 function stgAuUi(){ const b=$('#stgAuB'); if(!b) return; const s=stgSlides()[stgI];
-  if(bgOn(s)){ b.style.display=''; b.textContent=bgmOff?'🎵 배경음악 켜기 (Enter)':'🔇 배경음악 끄기 (Enter)'; const vb=$('#stgVb'); if(vb){ vb.style.display=''; $('#stgVn').textContent=bgmVol()+'%'; } return; } const has=s&&s.t==='act'&&AUHAS.has(auKey(s.a));
+  if(bgOn(s)){ b.style.display=''; b.textContent=bgmOff?'🎵 배경음악 켜기 (Enter)':'🔇 배경음악 끄기 (Enter)'; const vb=$('#stgVb'); if(vb){ vb.style.display=''; $('#stgVn').textContent=bgmVol()+'%'; } return; } const has=s&&/^(act|mv)$/.test(s.t)&&AUHAS.has(auKey(s.a));
   if($('#stg').classList.contains('rk')){ b.style.display=''; b.textContent='🎼 리코더 닫기 (Enter)'; return; }
   if(s&&s.t==='act'&&!has&&isRec(s.a)){ b.style.display=''; b.textContent='🎼 리코더 공연 화면 열기 (Enter)'; return; }
   if($('#stg').classList.contains('pic')){ b.style.display=''; b.textContent='🖼️ 그림 닫기 (Enter)'; return; }
@@ -889,7 +889,7 @@ stgAu.addEventListener('ended',()=>{ stgAuFor=null; stgAuUi(); });
 $('#stgV').addEventListener('ended',()=>{ $('#stg').classList.remove('vid'); stgAuFor=null; stgAuUi(); });
 /* ── 🎬 무대 화면: 표지 → 시작 인사 → 무대마다 한 장 → 마무리 인사 → 감사 ── */
 let stgI=0, stgMv=0;
-function stgSlides(){ const acts=bigActs(); const L=[{t:'cover'}]; if(openT()||true) L.push({t:'open'}); acts.forEach((a,k)=>L.push({t:'act',a,k,n:acts.length,next:acts[k+1]})); L.push({t:'close'}); L.push({t:'end'}); return L; }
+function stgSlides(){ const acts=bigActs(); const L=[{t:'cover'}]; if(openT()||true) L.push({t:'open'}); acts.forEach((a,k)=>L.push({t:'act',a,k,n:acts.length,next:acts[k+1]})); L.push({t:'close'}); L.push({t:'end'}); const mv=acts.find(a=>/합창|뮤직/.test((a.kind||'')+(a.name||''))&&AUHAS.has(auKey(a))); if(mv) L.push({t:'mv',a:mv}); return L; } // 다 끝나고 부모님과 인사할 때 합창 뮤직비디오를 한 번 더(반복)
 const icBig=k=>{ const ic=iconOf(k)||'⭐'; return `<div class="ico">${ic}</div>`; };
 const whoChips=a=> isAll(a)? `<span class="all">🙌 ${esc(S.klass||'우리 반')} 모두</span>`+people(a).filter(n=>!ALL_RE.test(n)).map(n=>`<span>${esc(n)}</span>`).join('') : people(a).map(n=>`<span>${esc(n)}</span>`).join('');
 function stgDraw(){
@@ -901,6 +901,7 @@ function stgDraw(){
   else if(s.t==='open'){ h=`<div class="ico">🎤</div><div class="big1">시작 인사</div><div class="sub1">와 주셔서 감사합니다</div>`; const a=L.find(x=>x.t==='act'); if(a) nx=a.a; }
   else if(s.t==='act'){ const a=s.a; h=`<div class="rb">${s.k+1}번째 무대</div>${icBig(a.kind)}<div class="kd">${esc(a.kind||'')}</div><div class="tt">${esc(a.name||a.kind||'')}</div><div class="ws">${whoChips(a)}</div>${dots(s.k)}`; nx=s.next; }
   else if(s.t==='close'){ h=`<div class="ico">🎤</div><div class="big1">마무리 인사</div><div class="sub1">끝까지 함께해 주셔서 고맙습니다</div>`; }
+  else if(s.t==='mv'){ h=`<div class="ico">🎬</div><div class="big1">다시 보는 뮤직비디오</div><div class="sub1">${esc(s.a.name||'')} · 부모님과 인사 나누는 동안 함께 봐요</div>`; setTimeout(()=>{ if(stgSlides()[stgI]?.t==='mv'&&!$('#stg').classList.contains('vid')) stgAuToggle(); },700); }
   else { h=`<div class="ico">💐</div><div class="big1">감사합니다</div><div class="sub1">${esc(S.klass||'')} 어린이들의 무대를 응원해 주셔서 고맙습니다</div>`; }
   c.classList.remove('in'); c.innerHTML=h; void c.offsetWidth; c.classList.add('in');
   const old=$('#stg .nx'); if(old) old.remove();
